@@ -1,0 +1,10 @@
+.announce {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 35px;
+  background-color: #cd0c0d;
+  font-size: 0.775rem;
+  color: #fcf3f3;
+  font-weight: 500;
+}
