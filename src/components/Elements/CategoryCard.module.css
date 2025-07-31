@@ -1,0 +1,32 @@
+/* CategoryCard.module.css - Card styling for category */
+.card {
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  background: #fff;
+  width: 120px;
+  height: 120px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: border 0.2s, background 0.2s;
+}
+.card:hover {
+  border: 2px solid #cd0c0d;
+}
+.active {
+  background: #cd0c0d;
+  color: #fff;
+  border: 2px solid #cd0c0d;
+}
+.icon {
+  font-size: 2rem;
+  margin-bottom: 8px;
+}
+.label {
+  font-size: 0.5rem;
+  font-weight: 500;
+  text-align: center;
+}

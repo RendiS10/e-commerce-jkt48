@@ -1,0 +1,32 @@
+/* CategoryList.module.css - Styling for category section */
+.section {
+  margin-top: 5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+}
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+.badge {
+  color: #cd0c0d;
+  font-weight: 600;
+  font-size: 1rem;
+  background: #ffeaea;
+  border-radius: 8px;
+  padding: 6px 16px;
+  margin-right: 16px;
+}
+
+.list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+  justify-content: center;
+}

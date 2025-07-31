@@ -1,0 +1,8 @@
+/* ProductList.module.css - Styling for product list */
+.list {
+  display: flex;
+  gap: 32px;
+  justify-content: center;
+  align-items: center;
+  margin: 32px 0;
+}
