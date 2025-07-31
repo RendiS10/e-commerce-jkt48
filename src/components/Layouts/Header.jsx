@@ -1,8 +1,7 @@
 import React from "react";
-import Navbar from "./Navbar.jsx";
 import styles from "./Header.module.css";
 
-function Announce() {
+function Header() {
   return (
     <div className={styles.announce}>
       <p>Selamat datang di Web JKT48 Shop Official ! Enjoy your shopping</p>
@@ -10,12 +9,4 @@ function Announce() {
   );
 }
 
-function Header() {
-  return (
-    <header>
-      <Announce />
-      <Navbar />
-    </header>
-  );
-}
 export default Header;

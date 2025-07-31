@@ -1,6 +1,5 @@
 import React from "react";
 import styles from "./Navbar.module.css";
-import HeroSection from "../Fragments/HeroSection";
 
 function Navbar() {
   return (
