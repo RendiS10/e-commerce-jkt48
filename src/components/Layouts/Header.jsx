@@ -1,9 +1,8 @@
 import React from "react";
-import styles from "./Header.module.css";
 
 function Header() {
   return (
-    <div className={styles.announce}>
+    <div className="flex items-center justify-center h-[35px] bg-[#cd0c0d] text-[0.775rem] text-[#fcf3f3] font-medium">
       <p>Selamat datang di Web JKT48 Shop Official ! Enjoy your shopping</p>
     </div>
   );

@@ -1,6 +1,5 @@
 import React from "react";
 import ProductCard from "../Elements/ProductCard";
-import styles from "./ProductList.module.css";
 
 const products = [
   {
@@ -47,7 +46,7 @@ const products = [
 
 function ProductList() {
   return (
-    <div className={styles.list}>
+    <div className="flex gap-8 justify-center items-center my-8">
       {products.map((p, idx) => (
         <ProductCard
           key={p.name}
