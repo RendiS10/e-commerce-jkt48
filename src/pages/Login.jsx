@@ -1,7 +1,8 @@
 import React from "react";
-import LoginForm from "../../components/Fragments/LoginForm";
-import Navbar from "../../components/Layouts/Navbar";
-import Header from "../../components/Layouts/Header";
+import LoginForm from "../components/Fragments/LoginForm";
+import Navbar from "../components/Layouts/Navbar";
+import Header from "../components/Layouts/Header";
+import Footer from "../components/Layouts/Footer";
 
 function Login() {
   return (
@@ -30,6 +31,7 @@ function Login() {
           </div>
         </div>
       </div>
+      <Footer />
     </>
   );
 }

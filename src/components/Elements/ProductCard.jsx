@@ -1,5 +1,4 @@
 import React from "react";
-import styles from "./ProductCard.module.css";
 
 function ProductCard({
   image,
@@ -15,15 +14,19 @@ function ProductCard({
   return (
     <a
       href={link}
-      className={styles.card}
+      className="bg-white rounded-[10px] shadow-[0_2px_8px_rgba(0,0,0,0.04)] border border-[#eee] w-[200px] p-4 pt-4 pb-3 flex flex-col gap-2 relative transition hover:shadow-md"
       target="_blank"
       rel="noopener noreferrer"
     >
-      <div className={styles.imgWrap}>
-        <img src={image} alt={name} />
-        <div className={styles.actions}>
+      <div className="relative w-full h-[120px] flex items-center justify-center bg-[#fafafa] rounded-lg">
+        <img
+          src={image}
+          alt={name}
+          className="max-w-[100px] max-h-[100px] object-contain"
+        />
+        <div className="absolute top-2 right-2 flex gap-2">
           <button
-            className={styles.icon}
+            className="bg-white border-none rounded-full w-7 h-7 flex items-center justify-center cursor-pointer shadow-[0_1px_4px_rgba(0,0,0,0.06)] transition hover:bg-[#ffeaea]"
             title="Wishlist"
             onClick={(e) => {
               e.preventDefault();
@@ -41,7 +44,7 @@ function ProductCard({
             </svg>
           </button>
           <button
-            className={styles.icon}
+            className="bg-white border-none rounded-full w-7 h-7 flex items-center justify-center cursor-pointer shadow-[0_1px_4px_rgba(0,0,0,0.06)] transition hover:bg-[#ffeaea]"
             title="View"
             onClick={(e) => {
               e.preventDefault();
@@ -61,18 +64,22 @@ function ProductCard({
           </button>
         </div>
       </div>
-      <div className={styles.info}>
-        <div className={styles.name}>{name}</div>
-        <div className={styles.priceWrap}>
-          <span className={styles.price}>${price}</span>
-          {oldPrice && <span className={styles.oldPrice}>${oldPrice}</span>}
+      <div className="flex flex-col gap-1">
+        <div className="text-base font-medium mb-[2px]">{name}</div>
+        <div className="flex gap-2 items-center">
+          <span className="text-[#cd0c0d] font-semibold">${price}</span>
+          {oldPrice && (
+            <span className="text-[#888] line-through text-[0.95em]">
+              ${oldPrice}
+            </span>
+          )}
         </div>
-        <div className={styles.ratingWrap}>
-          <span className={styles.stars}>
+        <div className="flex items-center gap-1.5 text-base">
+          <span className="text-[#ffb400] text-base">
             {"★".repeat(rating)}
             {"☆".repeat(5 - rating)}
           </span>
-          <span className={styles.reviews}>({reviews})</span>
+          <span className="text-[#888] text-[0.95em]">({reviews})</span>
         </div>
       </div>
     </a>

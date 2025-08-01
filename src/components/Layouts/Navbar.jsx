@@ -30,7 +30,7 @@ function Navbar() {
           Home
         </a>
         <a
-          href="#"
+          href="/whistlist"
           className="text-[#cd0c0d] no-underline text-base relative pb-[2px] transition-colors after:content-[''] after:block after:absolute after:left-1/2 after:bottom-0 after:w-0 after:h-[2px] after:bg-[#cd0c0d] after:transition-all after:duration-500 after:ease-[cubic-bezier(0.4,0,0.2,1)] after:-translate-x-1/2 hover:after:w-full hover:after:left-1/2 hover:after:-translate-x-1/2 font-normal"
         >
           Cek Keranjang
