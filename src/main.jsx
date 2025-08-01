@@ -4,6 +4,7 @@ import Home from "./pages/Home.jsx";
 import Login from "./pages/Login.jsx";
 import Register from "./pages/Register.jsx";
 import Whistlist from "./pages/Whistlist.jsx";
+import Checkout from "./pages/Checkout.jsx";
 
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
@@ -23,6 +24,10 @@ const router = createBrowserRouter([
   {
     path: "/whistlist",
     element: <Whistlist />,
+  },
+  {
+    path: "/checkout",
+    element: <Checkout />,
   },
 ]);
 
