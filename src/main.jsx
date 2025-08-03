@@ -1,12 +1,12 @@
 import React, { StrictMode } from "react";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { createRoot } from "react-dom/client";
 import Home from "./pages/Home.jsx";
 import Login from "./pages/Login.jsx";
 import Register from "./pages/Register.jsx";
 import Whistlist from "./pages/Whistlist.jsx";
 import Checkout from "./pages/Checkout.jsx";
-
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import Pembayaran from "./pages/Pembayaran.jsx";
 
 const router = createBrowserRouter([
   {
@@ -28,6 +28,10 @@ const router = createBrowserRouter([
   {
     path: "/checkout",
     element: <Checkout />,
+  },
+  {
+    path: "/pembayaran",
+    element: <Pembayaran />,
   },
 ]);
 
