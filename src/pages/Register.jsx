@@ -2,6 +2,7 @@ import Header from "../components/Layouts/Header";
 import React from "react";
 import RegisterForm from "../components/Fragments/RegisterForm";
 import Footer from "../components/Layouts/Footer";
+import Navbar from "../components/Layouts/Navbar";
 
 function Register() {
   return (
@@ -9,6 +10,7 @@ function Register() {
       <header>
         <Header />
       </header>
+      <Navbar />
       <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="flex w-full max-w-5xl bg-white rounded-lg shadow-none">
           {/* Left Side - Image */}

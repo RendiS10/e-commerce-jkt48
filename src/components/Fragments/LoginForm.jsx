@@ -32,8 +32,11 @@ function LoginForm() {
       />
       <div className="flex items-center justify-between mt-2">
         <Button type="submit">Log In</Button>
-        <a href="#" className="text-[#cd0c0d] text-sm ml-4 hover:underline">
-          Forget Password?
+        <a
+          href="/register"
+          className="text-[#cd0c0d] text-sm ml-4 hover:underline"
+        >
+          Belum punya akun? Daftar Sekarang
         </a>
       </div>
     </form>

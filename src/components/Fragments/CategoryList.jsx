@@ -1,37 +1,53 @@
 import React, { useState } from "react";
 import CategoryCard from "../Elements/CategoryCard";
 import ProductList from "../Fragments/ProductList";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faShirt,
-  faLaptop,
-  faClock,
-  faCamera,
-  faHeadphones,
-  faGamepad,
-} from "@fortawesome/free-solid-svg-icons";
 
 const categories = [
   {
     label: "JKT48 Official T-Shirts",
-    icon: <FontAwesomeIcon icon={faShirt} size="1x" />,
+    icon: (
+      <img
+        src="../../../public/images/categories/merch-tshirt.jpg"
+        alt="T-Shirts"
+        className="w-[120px] h-[80px] object-contain"
+      />
+    ),
   },
   {
     label: "JKT48 Official Birthday T-Shirts",
-    icon: <FontAwesomeIcon icon={faShirt} size="1x" />,
+    icon: (
+      <img
+        src="../../../public/images/categories/bdts.jpg"
+        alt="Birthday T-Shirts"
+        className="w-[120px] h-[80px] object-contain"
+      />
+    ),
   },
   {
     label: "JKT48 Official Photobook Stationery",
-    icon: <FontAwesomeIcon icon={faLaptop} size="1x" />,
+    icon: (
+      <img
+        src="../../../public/images/categories/ptbook.jpg"
+        alt="Photobook"
+        className="w-[120px] h-[80px] object-contain"
+      />
+    ),
   },
   {
     label: "JKT48 Accessories",
-    icon: <FontAwesomeIcon icon={faCamera} size="1x" />,
+    icon: (
+      <img
+        src="../../../public/images/categories/accs.jpg"
+        alt="Accessories"
+        className="w-[120px] h-[80px] object-contain"
+      />
+    ),
   },
 ];
 
 function CategoryList() {
   const [active, setActive] = useState(3);
+  const [selectedCategory, setSelectedCategory] = useState(categories[3].label);
 
   return (
     <>
@@ -41,19 +57,34 @@ function CategoryList() {
             Cari Merch Yang Anda Inginkan
           </span>
         </div>
-        <div className="flex flex-wrap gap-4 items-center justify-center">
+        <div className="flex flex-wrap gap-6 items-start justify-center">
           {categories.map((cat, idx) => (
-            <CategoryCard
+            <div
               key={cat.label}
-              icon={cat.icon}
-              label={cat.label}
-              active={active === idx}
-              onClick={() => setActive(idx)}
-            />
+              className={`w-[220px] h-[200px] flex flex-col items-center justify-center border border-gray-200 rounded-lg bg-white shadow-sm transition-all duration-300 cursor-pointer group${
+                active === idx ? " ring-2 ring-[#cd0c0d]" : ""
+              }`}
+              style={{ boxShadow: undefined }}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.boxShadow = "0 4px 24px 0 #ffeaea")
+              }
+              onMouseLeave={(e) => (e.currentTarget.style.boxShadow = "")}
+              onClick={() => {
+                setActive(idx);
+                setSelectedCategory(cat.label);
+              }}
+            >
+              {React.cloneElement(cat.icon, {
+                className: `${cat.icon.props.className} transition-all duration-300`,
+              })}
+              <span className="mt-2 text-center text-sm font-semibold leading-tight transition-all duration-300">
+                {cat.label}
+              </span>
+            </div>
           ))}
         </div>
       </section>
-      <ProductList />
+      <ProductList category={selectedCategory} />
     </>
   );
 }
