@@ -35,7 +35,7 @@ function CategoryList() {
 
   return (
     <>
-      <section className="mt-20 flex flex-col justify-center items-center gap-4">
+      <section className="mt-10 flex flex-col justify-center items-center gap-4">
         <div className="flex items-center justify-between mb-6">
           <span className="text-[#cd0c0d] font-semibold text-base bg-[#ffeaea] rounded-lg py-[6px] px-4 mr-4">
             Cari Merch Yang Anda Inginkan

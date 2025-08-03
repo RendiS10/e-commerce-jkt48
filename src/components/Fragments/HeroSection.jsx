@@ -2,23 +2,23 @@ import React, { useState, useRef, useEffect } from "react";
 
 const slides = [
   {
-    img: "https://jkt48.com/images/banner.home.jkt48fullhouse.jpg",
-    link: "https://www.loket.com/event/jkt48-special-concert-full-house_fbDUD",
-    alt: "JKT48 Special Concert House",
+    img: "../../../public/images/hero/merchFullhouse.webp",
+    link: "https://jkt48.com/news/detail/id/1932?lang=id",
+    alt: "JKT48 Full House Merch",
   },
   {
-    img: "https://jkt48.com/images/banner.home.allintour2025pb-id.jpg",
-    link: "https://jkt48.com/allintour2025pb?lang=id",
-    alt: "Miles & Memories of JKT48 All In Tour 2025",
+    img: "../../../public/images/hero/merchFullhouse2.webp",
+    link: "https://jkt48.com/news/detail/id/1932?lang=id",
+    alt: "JKT48 Full House Merch",
   },
   {
-    img: "https://jkt48.com/images/banner.fanclub2021-id.jpg",
-    link: "https://jkt48.com/jtrust-bank",
-    alt: "JKT48 JTrust Bank Card",
+    img: "../../../public/images/hero/merchFullhouse3.webp",
+    link: "https://jkt48.com/news/detail/id/1932?lang=id",
+    alt: "JKT48 Full House Merch",
   },
   {
-    img: "https://jkt48.com/images/banner.fanclub2021-id.jpg",
-    link: "https://jkt48.com/jtrust-bank",
+    img: "../../../public/images/hero/merchFullhouse4.webp",
+    link: "https://jkt48.com/news/detail/id/1932?lang=id",
     alt: "JKT48 JTrust Bank Card",
   },
 ];
@@ -44,19 +44,23 @@ function HeroSection() {
 
   return (
     <section className="w-screen max-w-full overflow-hidden bg-white mb-6 relative">
-      <div className="flex transition-none h-[270px] relative">
+      <h3 className="text-xl font-bold text-[#cd0c0d] mb-1 text-center mt-5">
+        News JKT48 Official Merch
+      </h3>
+      <div className="flex justify-center items-center transition-none h-[250px] relative">
         {visibleSlides.map((slide, idx) => (
           <a
             href={slide.link}
             key={idx}
-            className="min-w-[33.3333vw] w-[33.3333vw] h-[270px] flex justify-center items-center opacity-100 pointer-events-auto transition-none"
+            className="min-w-[33.3333vw] w-[33.3333vw] max-w-[33.3333vw] h-[270px] flex justify-center items-center opacity-100 pointer-events-auto transition-none bg-white aspect-[4/3] overflow-hidden"
             target="_blank"
             rel="noopener noreferrer"
           >
             <img
               src={slide.img}
               alt={slide.alt}
-              className="w-full h-full object-cover rounded-none shadow-none"
+              className="w-full h-full max-w-[320px] max-h-[240px] object-contain rounded-none shadow-none mx-auto my-auto"
+              style={{ aspectRatio: "4/3" }}
             />
           </a>
         ))}
