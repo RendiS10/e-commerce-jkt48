@@ -7,6 +7,7 @@ import Register from "./pages/Register.jsx";
 import Whistlist from "./pages/Whistlist.jsx";
 import Checkout from "./pages/Checkout.jsx";
 import Pembayaran from "./pages/Pembayaran.jsx";
+import DetailProduct from "./pages/DetailProduct.jsx";
 
 const router = createBrowserRouter([
   {
@@ -32,6 +33,10 @@ const router = createBrowserRouter([
   {
     path: "/pembayaran",
     element: <Pembayaran />,
+  },
+  {
+    path: "/detailproduct",
+    element: <DetailProduct />,
   },
 ]);
 
