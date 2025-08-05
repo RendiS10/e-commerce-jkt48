@@ -7,9 +7,7 @@ import Navbar from "../components/Layouts/Navbar";
 function Register() {
   return (
     <>
-      <header>
-        <Header />
-      </header>
+      <Header />
       <Navbar />
       <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="flex w-full max-w-5xl bg-white rounded-lg shadow-none">

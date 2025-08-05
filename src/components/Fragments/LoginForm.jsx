@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import Input from "../../components/Elements/Input";
 import Button from "../../components/Elements/Button";
 
@@ -32,12 +33,12 @@ function LoginForm() {
       />
       <div className="flex items-center justify-between mt-2">
         <Button type="submit">Log In</Button>
-        <a
-          href="/register"
+        <Link
+          to="/register"
           className="text-[#cd0c0d] text-sm ml-4 hover:underline"
         >
           Belum punya akun? Daftar Sekarang
-        </a>
+        </Link>
       </div>
     </form>
   );

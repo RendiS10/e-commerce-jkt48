@@ -1,17 +1,43 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import Input from "../../components/Elements/Input";
 import Button from "../../components/Elements/Button";
 
 function RegisterForm() {
   const [form, setForm] = useState({ name: "", email: "", password: "" });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // handle register logic here
+    setLoading(true);
+    setError("");
+    setSuccess("");
+    try {
+      const res = await fetch("http://localhost:5000/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          full_name: form.name,
+          email: form.email,
+          password: form.password,
+          role: "customer",
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Register failed");
+      setSuccess("Register success! Please login.");
+      setForm({ name: "", email: "", password: "" });
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -22,6 +48,7 @@ function RegisterForm() {
         placeholder="Name"
         value={form.name}
         onChange={handleChange}
+        required
       />
       <Input
         type="text"
@@ -29,6 +56,7 @@ function RegisterForm() {
         placeholder="Email or Phone Number"
         value={form.email}
         onChange={handleChange}
+        required
       />
       <Input
         type="password"
@@ -36,26 +64,19 @@ function RegisterForm() {
         placeholder="Password"
         value={form.password}
         onChange={handleChange}
+        required
       />
-      <Button type="submit" className="w-full mt-2 mb-3">
-        Create Account
+      {error && <div className="text-red-500 text-sm mb-2">{error}</div>}
+      {success && <div className="text-green-600 text-sm mb-2">{success}</div>}
+      <Button type="submit" className="w-full mt-2 mb-3" disabled={loading}>
+        {loading ? "Registering..." : "Create Account"}
       </Button>
-      <button
-        type="button"
-        className="w-full flex items-center justify-center border border-gray-300 rounded py-2 text-base font-medium mb-6 hover:bg-gray-50 transition"
-      >
-        <img
-          src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg"
-          alt="Google"
-          className="w-5 h-5 mr-2"
-        />
-        Sign up with Google
-      </button>
+
       <div className="flex items-center justify-center text-sm text-gray-600 mt-2">
         Already have account?
-        <a href="/login" className="ml-1 text-[#cd0c0d] hover:underline">
+        <Link to="/login" className="ml-1 text-[#cd0c0d] hover:underline">
           Log in
-        </a>
+        </Link>
       </div>
     </form>
   );
