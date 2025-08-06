@@ -40,7 +40,7 @@ function ProductLainnya() {
               ? p.main_image
               : "/no-image.png",
           name: p.product_name || p.name,
-          price: Number(p.price),
+          price: `Rp ${Number(p.price).toLocaleString("id-ID")}`,
           oldPrice: null,
           rating: p.average_rating || 0,
           reviews: p.total_reviews || 0,

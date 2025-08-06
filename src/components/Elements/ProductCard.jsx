@@ -1,9 +1,10 @@
 import React from "react";
+import { Link } from "react-router-dom";
 
 function ProductCard({ image, name, price, oldPrice, rating, reviews, link }) {
   return (
-    <a
-      href={link}
+    <Link
+      to={link}
       className="bg-white rounded-[10px] shadow-[0_2px_8px_rgba(0,0,0,0.04)] border border-[#eee] w-[200px] p-4 pt-4 pb-3 flex flex-col gap-2 relative transition hover:shadow-md"
       target="_blank"
       rel="noopener noreferrer"
@@ -18,10 +19,10 @@ function ProductCard({ image, name, price, oldPrice, rating, reviews, link }) {
       <div className="flex flex-col gap-1">
         <div className="text-base font-medium mb-[2px]">{name}</div>
         <div className="flex gap-2 items-center">
-          <span className="text-[#cd0c0d] font-semibold">${price}</span>
+          <span className="text-[#cd0c0d] font-semibold">{price}</span>
           {oldPrice && (
             <span className="text-[#888] line-through text-[0.95em]">
-              ${oldPrice}
+              {oldPrice}
             </span>
           )}
         </div>
@@ -33,7 +34,7 @@ function ProductCard({ image, name, price, oldPrice, rating, reviews, link }) {
           <span className="text-[#888] text-[0.95em]">({reviews})</span>
         </div>
       </div>
-    </a>
+    </Link>
   );
 }
 
