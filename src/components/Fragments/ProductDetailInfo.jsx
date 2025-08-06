@@ -1,10 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import RatingStars from "../Elements/RatingStars";
 import PriceTag from "../Elements/PriceTag";
 import ColorSelector from "../Elements/ColorSelector";
 import SizeSelector from "../Elements/SizeSelector";
-import QuantitySelector from "../Elements/QuantitySelector";
 import Button from "../Elements/Button";
 import WishlistButton from "../Elements/WishlistButton";
 import DeliveryInfo from "../Elements/DeliveryInfo";
@@ -16,32 +15,95 @@ function ProductDetailInfo({ product }) {
   const [color, setColor] = useState(colors[0] || "");
   const [size, setSize] = useState(sizes[0] || "");
   const [qty, setQty] = useState(1);
+  // Tambahkan state untuk loading cart item
+  const [cartLoading, setCartLoading] = useState(false);
   const navigate = useNavigate();
+  const isLoggedIn = !!localStorage.getItem("token");
 
-  const handleAddToCart = () => {
-    // Ambil cart lama dari localStorage
-    const cart = JSON.parse(localStorage.getItem("cart")) || [];
-    // Buat item baru
-    const item = {
-      id: product.product_id || product.id,
-      name: product.product_name || product.name,
-      image: product.main_image,
-      price: Number(product.price),
-      quantity: qty,
-      color,
-      size,
+  // Prefill qty dari cart jika sudah ada item ini di cart
+  useEffect(() => {
+    const fetchCartQty = async () => {
+      if (!isLoggedIn) return;
+      setCartLoading(true);
+      try {
+        const token = localStorage.getItem("token");
+        const res = await fetch("http://localhost:5000/api/cart", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) throw new Error("Gagal mengambil data keranjang");
+        const data = await res.json();
+        const items = data.CartItems || [];
+        // Cari variant_id jika ada
+        let variant_id = null;
+        if (product.ProductVariants && Array.isArray(product.ProductVariants)) {
+          const found = product.ProductVariants.find(
+            (v) => (v.color === color || !color) && (v.size === size || !size)
+          );
+          if (found) variant_id = found.variant_id;
+        }
+        // Temukan item di cart yang cocok
+        const foundItem = items.find(
+          (item) =>
+            item.product_id === (product.product_id || product.id) &&
+            ((variant_id && item.variant_id === variant_id) ||
+              (!variant_id && !item.variant_id))
+        );
+        if (foundItem) setQty(foundItem.quantity);
+      } catch (err) {
+        // Bisa diabaikan, biar qty default 1
+      } finally {
+        setCartLoading(false);
+      }
     };
-    // Cek jika produk dengan varian sama sudah ada, update qty
-    const idx = cart.findIndex(
-      (i) => i.id === item.id && i.color === item.color && i.size === item.size
-    );
-    if (idx !== -1) {
-      cart[idx].quantity += qty;
-    } else {
-      cart.push(item);
+    fetchCartQty();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [product.product_id, product.id, color, size, isLoggedIn]);
+
+  const handleAddToCart = async () => {
+    if (!isLoggedIn) {
+      navigate("/login");
+      return;
     }
-    localStorage.setItem("cart", JSON.stringify(cart));
-    navigate("/checkout");
+    // Cari variant_id jika ada (jika product.variants tersedia)
+    let variant_id = null;
+    if (product.ProductVariants && Array.isArray(product.ProductVariants)) {
+      const found = product.ProductVariants.find(
+        (v) => (v.color === color || !color) && (v.size === size || !size)
+      );
+      if (found) variant_id = found.variant_id;
+    }
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch("http://localhost:5000/api/cart", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          product_id: product.product_id || product.id,
+          quantity: qty,
+          variant_id: variant_id || null,
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        alert(data.message || "Gagal menambah ke keranjang");
+        return;
+      }
+      navigate("/checkout");
+    } catch (err) {
+      alert("Gagal koneksi ke server");
+    }
+  };
+
+  const handleBuyNow = () => {
+    if (!isLoggedIn) {
+      navigate("/login");
+      return;
+    }
+    // Logika buy now bisa diisi sesuai kebutuhan (misal langsung checkout produk ini saja)
+    handleAddToCart();
   };
 
   return (
@@ -69,8 +131,21 @@ function ProductDetailInfo({ product }) {
         <SizeSelector sizes={sizes} value={size} onChange={setSize} />
       </div>
       <div className="flex items-center gap-2 mb-4">
-        <QuantitySelector value={qty} setValue={setQty} />
-        <Button className="bg-[#cd0c0d] text-white px-6 py-2 rounded">
+        <input
+          type="number"
+          min={0}
+          max={99}
+          value={qty}
+          onChange={(e) =>
+            setQty(Math.max(0, Math.min(99, Number(e.target.value))))
+          }
+          disabled={cartLoading}
+          className="border border-gray-300 rounded px-2 py-1 w-20 text-center focus:border-[#cd0c0d]"
+        />
+        <Button
+          className="bg-[#cd0c0d] text-white px-6 py-2 rounded"
+          onClick={handleBuyNow}
+        >
           Buy Now
         </Button>
         <Button
@@ -79,9 +154,7 @@ function ProductDetailInfo({ product }) {
         >
           Masukkan ke Keranjang
         </Button>
-        <WishlistButton />
       </div>
-      <DeliveryInfo />
     </div>
   );
 }

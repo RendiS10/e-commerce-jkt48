@@ -53,7 +53,6 @@ function DetailProduct() {
               ]}
             />
             <ProductDetailSection product={product} />
-            <RelatedProducts products={related} />
           </>
         ) : null}
       </div>

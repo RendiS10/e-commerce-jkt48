@@ -2,6 +2,20 @@ import React from "react";
 import Button from "./Button";
 
 function CartRow({ item, onRemove, onQuantityChange }) {
+  // Ambil quantity asli dari item.quantity (tanpa padStart)
+  // Ambil image dari item.Product.main_image jika ada, fallback ke item.image
+  let image =
+    (item.Product &&
+    item.Product.main_image &&
+    (item.Product.main_image.startsWith("uploads/") ||
+      item.Product.main_image.startsWith("/uploads/"))
+      ? `http://localhost:5000/${item.Product.main_image.replace(/^\/+/, "")}`
+      : item.Product &&
+        item.Product.main_image &&
+        item.Product.main_image.startsWith("http")
+      ? item.Product.main_image
+      : item.image) || "/no-image.png";
+
   return (
     <div className="grid grid-cols-4 items-center px-6 py-4 border-b last:border-b-0 bg-white relative">
       <div className="flex items-center gap-4">
@@ -13,24 +27,30 @@ function CartRow({ item, onRemove, onQuantityChange }) {
           ×
         </button>
         <img
-          src={item.image}
+          src={image}
           alt={item.name}
           className="w-14 h-14 object-contain rounded"
+          onError={(e) => {
+            e.target.onerror = null;
+            e.target.src = "/no-image.png";
+          }}
         />
         <span className="font-medium text-gray-800">{item.name}</span>
       </div>
       <span className="font-medium text-gray-700">${item.price}</span>
-      <select
-        className="border border-gray-300 rounded px-2 py-1 w-16 text-center focus:border-[#cd0c0d]"
+      <input
+        type="number"
+        min={0}
+        max={99}
         value={item.quantity}
-        onChange={(e) => onQuantityChange(item.id, e.target.value)}
-      >
-        {[0, 1, 2, 3, 4, 5].map((q) => (
-          <option key={q} value={q}>
-            {q.toString().padStart(2, "0")}
-          </option>
-        ))}
-      </select>
+        onChange={(e) =>
+          onQuantityChange(
+            item.id,
+            Math.max(0, Math.min(99, Number(e.target.value)))
+          )
+        }
+        className="border border-gray-300 rounded px-2 py-1 w-16 text-center focus:border-[#cd0c0d]"
+      />
       <span className="font-medium text-gray-700">
         ${item.price * item.quantity}
       </span>

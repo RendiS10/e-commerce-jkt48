@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Button from "../components/Elements/Button";
 import CartTable from "../components/Fragments/CartTable";
 import CartTotal from "../components/Elements/CartTotal";
@@ -9,68 +9,114 @@ import Header from "../components/Layouts/Header";
 import Navbar from "../components/Layouts/Navbar";
 import Footer from "../components/Layouts/Footer";
 
-const initialCart = [
-  {
-    id: 1,
-    name: "LCD Monitor",
-    image:
-      "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?auto=format&fit=crop&w=400&q=80",
-    price: 650,
-    quantity: 1,
-    color: 0,
-    size: 0,
-  },
-  {
-    id: 2,
-    name: "H1 Gamepad",
-    image:
-      "https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=400&q=80",
-    price: 550,
-    quantity: 2,
-    color: 0,
-    size: 0,
-  },
-];
-
 function Checkout() {
-  // Ambil cart dari localStorage jika ada, jika tidak pakai initialCart
-  const [cart, setCart] = useState(() => {
-    const saved = localStorage.getItem("cart");
-    return saved ? JSON.parse(saved) : initialCart;
-  });
+  const [cart, setCart] = useState([]);
   const [coupon, setCoupon] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  // Sync perubahan cart ke localStorage
-  React.useEffect(() => {
-    localStorage.setItem("cart", JSON.stringify(cart));
-  }, [cart]);
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setError("Silakan login untuk melihat keranjang.");
+      setLoading(false);
+      return;
+    }
+    fetch("http://localhost:5000/api/cart", {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error("Gagal mengambil data keranjang");
+        return res.json();
+      })
+      .then((data) => {
+        // data.CartItems bisa null jika cart kosong
+        setCart(data.CartItems || []);
+        setLoading(false);
+      })
+      .catch(() => {
+        setError("Gagal mengambil data keranjang");
+        setLoading(false);
+      });
+  }, []);
 
-  const handleQuantityChange = (id, value) => {
-    setCart((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, quantity: Number(value) } : item
-      )
-    );
+  const handleQuantityChange = async (cart_item_id, value) => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(
+        `http://localhost:5000/api/cart/${cart_item_id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ quantity: Number(value) }),
+        }
+      );
+      if (!res.ok) throw new Error("Gagal update quantity");
+      // Setelah update, fetch ulang cart dari backend agar sync
+      const cartRes = await fetch("http://localhost:5000/api/cart", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!cartRes.ok) throw new Error("Gagal mengambil data keranjang");
+      const cartData = await cartRes.json();
+      setCart(cartData.CartItems || []);
+    } catch {
+      alert("Gagal update quantity keranjang");
+    }
   };
 
-  const handleRemove = (id) => {
-    setCart((prev) => prev.filter((item) => item.id !== id));
-  };
-
-  const handleApplyCoupon = (e) => {
-    e.preventDefault();
-    // handle coupon logic here
+  const handleRemove = async (cart_item_id) => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(
+        `http://localhost:5000/api/cart/${cart_item_id}`,
+        {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      if (!res.ok) throw new Error("Gagal hapus item");
+      // Setelah hapus, fetch ulang cart dari backend agar sync
+      const cartRes = await fetch("http://localhost:5000/api/cart", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!cartRes.ok) throw new Error("Gagal mengambil data keranjang");
+      const cartData = await cartRes.json();
+      setCart(cartData.CartItems || []);
+    } catch {
+      alert("Gagal menghapus item keranjang");
+    }
   };
 
   const subtotal = cart.reduce(
-    (sum, item) => sum + (item.quantity > 0 ? item.price * item.quantity : 0),
+    (sum, item) =>
+      sum +
+      (item.quantity > 0 ? (item.Product?.price || 0) * item.quantity : 0),
     0
   );
 
   // Jika quantity 0, set price juga 0 pada tampilan
   const displayCart = cart.map((item) =>
-    item.quantity > 0 ? item : { ...item, price: 0 }
+    item.quantity > 0
+      ? {
+          ...item,
+          price: item.Product?.price || 0,
+          name: item.Product?.product_name || item.Product?.name || item.name,
+          image: item.Product?.main_image || item.image,
+        }
+      : {
+          ...item,
+          price: 0,
+          name: item.Product?.product_name || item.Product?.name || item.name,
+          image: item.Product?.main_image || item.image,
+        }
   );
+
+  if (loading) return <div className="text-center py-8">Loading...</div>;
+  if (error)
+    return <div className="text-center text-red-500 py-8">{error}</div>;
 
   return (
     <>
@@ -79,28 +125,14 @@ function Checkout() {
       </header>
       <Navbar />
       <div className="max-w-6xl mx-auto px-4 py-8">
-        {/* Breadcrumb */}
-        <Breadcrumb
-          items={[
-            { label: "Home", href: "/" },
-            { label: "Cart", active: true },
-          ]}
-        />
         {/* Cart Table */}
         <CartTable
-          cart={displayCart}
+          cart={displayCart.map((item) => ({ ...item, id: item.cart_item_id }))}
           onRemove={handleRemove}
           onQuantityChange={handleQuantityChange}
         />
-        {/* Actions */}
-        <CartActions />
-        <div className="flex flex-wrap gap-8 items-start">
-          {/* Coupon */}
-          <CouponForm
-            coupon={coupon}
-            setCoupon={setCoupon}
-            onApply={handleApplyCoupon}
-          />
+
+        <div className="flex flex-wrap gap-8 items-start justify-end">
           {/* Cart Total */}
           <div>
             <CartTotal subtotal={subtotal} />

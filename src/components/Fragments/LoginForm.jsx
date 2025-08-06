@@ -10,9 +10,26 @@ function LoginForm() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // handle login logic here
+    try {
+      const res = await fetch("http://localhost:5000/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        alert(data.message || "Login gagal");
+        return;
+      }
+      // Simpan token dan user ke localStorage
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+      window.location.href = "/"; // redirect ke home
+    } catch (err) {
+      alert("Terjadi kesalahan jaringan");
+    }
   };
 
   return (

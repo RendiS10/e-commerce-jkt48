@@ -1,4 +1,4 @@
-import React, { StrictMode } from "react";
+import React, { StrictMode, useEffect, useState, createContext } from "react";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { createRoot } from "react-dom/client";
 import Home from "./pages/Home.jsx";
@@ -8,6 +8,77 @@ import Whistlist from "./components/Fragments/ProductLainnya.jsx";
 import Checkout from "./pages/Checkout.jsx";
 import Pembayaran from "./pages/Pembayaran.jsx";
 import DetailProduct from "./pages/DetailProduct.jsx";
+
+// Context untuk user dan cart
+export const UserContext = createContext();
+export const CartContext = createContext();
+
+function AppProviders({ children }) {
+  const [user, setUser] = useState(null);
+  const [cart, setCart] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch user info jika ada token
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setUser(null);
+      setCart([]);
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    // Fetch user info
+    fetch("http://localhost:5000/api/auth/me", {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => setUser(data))
+      .catch(() => setUser(null));
+    // Fetch cart
+    fetch("http://localhost:5000/api/cart", {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => (res.ok ? res.json() : { CartItems: [] }))
+      .then((data) => setCart(data.CartItems || []))
+      .catch(() => setCart([]))
+      .finally(() => setLoading(false));
+  }, []);
+
+  // Fungsi untuk refresh user/cart setelah login/logout
+  const refreshUserAndCart = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setUser(null);
+      setCart([]);
+      return;
+    }
+    try {
+      const userRes = await fetch("http://localhost:5000/api/auth/me", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setUser(userRes.ok ? await userRes.json() : null);
+      const cartRes = await fetch("http://localhost:5000/api/cart", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const cartData = cartRes.ok ? await cartRes.json() : { CartItems: [] };
+      setCart(cartData.CartItems || []);
+    } catch {
+      setUser(null);
+      setCart([]);
+    }
+  };
+
+  return (
+    <UserContext.Provider
+      value={{ user, setUser, refreshUserAndCart, loading }}
+    >
+      <CartContext.Provider value={{ cart, setCart, refreshUserAndCart }}>
+        {children}
+      </CartContext.Provider>
+    </UserContext.Provider>
+  );
+}
 
 const router = createBrowserRouter([
   {
@@ -37,7 +108,9 @@ const router = createBrowserRouter([
 ]);
 
 createRoot(document.getElementById("root")).render(
-  <React.StrictMode>
-    <RouterProvider router={router} />
-  </React.StrictMode>
+  <StrictMode>
+    <AppProviders>
+      <RouterProvider router={router} />
+    </AppProviders>
+  </StrictMode>
 );
