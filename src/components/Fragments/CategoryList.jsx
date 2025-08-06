@@ -1,53 +1,39 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import CategoryCard from "../Elements/CategoryCard";
 import ProductList from "../Fragments/ProductList";
 
-const categories = [
-  {
-    label: "JKT48 Official T-Shirts",
-    icon: (
-      <img
-        src="../../../public/images/categories/merch-tshirt.jpg"
-        alt="T-Shirts"
-        className="w-[120px] h-[80px] object-contain"
-      />
-    ),
-  },
-  {
-    label: "JKT48 Official Birthday T-Shirts",
-    icon: (
-      <img
-        src="../../../public/images/categories/bdts.jpg"
-        alt="Birthday T-Shirts"
-        className="w-[120px] h-[80px] object-contain"
-      />
-    ),
-  },
-  {
-    label: "JKT48 Official Photobook Stationery",
-    icon: (
-      <img
-        src="../../../public/images/categories/ptbook.jpg"
-        alt="Photobook"
-        className="w-[120px] h-[80px] object-contain"
-      />
-    ),
-  },
-  {
-    label: "JKT48 Accessories",
-    icon: (
-      <img
-        src="../../../public/images/categories/accs.jpg"
-        alt="Accessories"
-        className="w-[120px] h-[80px] object-contain"
-      />
-    ),
-  },
-];
-
 function CategoryList() {
-  const [active, setActive] = useState(3);
-  const [selectedCategory, setSelectedCategory] = useState(categories[3].label);
+  const [categories, setCategories] = useState([]);
+  const [active, setActive] = useState(0);
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    fetch("http://localhost:5000/api/categories")
+      .then((res) => res.json())
+      .then((data) => {
+        setCategories(data);
+        setSelectedCategory(data[0]?.category_name || "");
+        setLoading(false);
+      })
+      .catch(() => {
+        setError("Gagal memuat kategori");
+        setLoading(false);
+      });
+  }, []);
+
+  if (loading) return <div className="text-center py-8">Loading...</div>;
+  if (error)
+    return <div className="text-center text-red-500 py-8">{error}</div>;
+
+  // Icon mapping (optional):
+  const iconMap = [
+    "/images/categories/merch-tshirt.jpg",
+    "/images/categories/bdts.jpg",
+    "/images/categories/ptbook.jpg",
+    "/images/categories/accs.jpg",
+  ];
 
   return (
     <>
@@ -60,7 +46,7 @@ function CategoryList() {
         <div className="flex flex-wrap gap-6 items-start justify-center">
           {categories.map((cat, idx) => (
             <div
-              key={cat.label}
+              key={cat.category_id}
               className={`w-[220px] h-[200px] flex flex-col items-center justify-center border border-gray-200 rounded-lg bg-white shadow-sm transition-all duration-300 cursor-pointer group${
                 active === idx ? " ring-2 ring-[#cd0c0d]" : ""
               }`}
@@ -71,14 +57,16 @@ function CategoryList() {
               onMouseLeave={(e) => (e.currentTarget.style.boxShadow = "")}
               onClick={() => {
                 setActive(idx);
-                setSelectedCategory(cat.label);
+                setSelectedCategory(cat.category_name);
               }}
             >
-              {React.cloneElement(cat.icon, {
-                className: `${cat.icon.props.className} transition-all duration-300`,
-              })}
+              <img
+                src={iconMap[idx % iconMap.length]}
+                alt={cat.category_name}
+                className="w-[120px] h-[80px] object-contain transition-all duration-300"
+              />
               <span className="mt-2 text-center text-sm font-semibold leading-tight transition-all duration-300">
-                {cat.label}
+                {cat.category_name}
               </span>
             </div>
           ))}

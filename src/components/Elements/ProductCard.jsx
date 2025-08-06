@@ -1,16 +1,6 @@
 import React from "react";
 
-function ProductCard({
-  image,
-  name,
-  price,
-  oldPrice,
-  rating,
-  reviews,
-  onWishlist,
-  onView,
-  link,
-}) {
+function ProductCard({ image, name, price, oldPrice, rating, reviews, link }) {
   return (
     <a
       href={link}
@@ -24,45 +14,6 @@ function ProductCard({
           alt={name}
           className="max-w-[100px] max-h-[100px] object-contain"
         />
-        <div className="absolute top-2 right-2 flex gap-2">
-          <button
-            className="bg-white border-none rounded-full w-7 h-7 flex items-center justify-center cursor-pointer shadow-[0_1px_4px_rgba(0,0,0,0.06)] transition hover:bg-[#ffeaea]"
-            title="Wishlist"
-            onClick={(e) => {
-              e.preventDefault();
-              onWishlist && onWishlist();
-            }}
-          >
-            <svg
-              width="20"
-              height="20"
-              fill="none"
-              stroke="#cd0c0d"
-              strokeWidth="2"
-            >
-              <path d="M10 17s-6-4.35-6-8.5A3.5 3.5 0 0 1 10 5a3.5 3.5 0 0 1 6 3.5C16 12.65 10 17 10 17z" />
-            </svg>
-          </button>
-          <button
-            className="bg-white border-none rounded-full w-7 h-7 flex items-center justify-center cursor-pointer shadow-[0_1px_4px_rgba(0,0,0,0.06)] transition hover:bg-[#ffeaea]"
-            title="View"
-            onClick={(e) => {
-              e.preventDefault();
-              onView && onView();
-            }}
-          >
-            <svg
-              width="20"
-              height="20"
-              fill="none"
-              stroke="#222"
-              strokeWidth="2"
-            >
-              <circle cx="10" cy="10" r="7" />
-              <circle cx="10" cy="10" r="3" />
-            </svg>
-          </button>
-        </div>
       </div>
       <div className="flex flex-col gap-1">
         <div className="text-base font-medium mb-[2px]">{name}</div>
