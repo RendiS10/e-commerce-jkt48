@@ -25,7 +25,7 @@ function CartRow({ item, onRemove, onQuantityChange }) {
         value={item.quantity}
         onChange={(e) => onQuantityChange(item.id, e.target.value)}
       >
-        {[1, 2, 3, 4, 5].map((q) => (
+        {[0, 1, 2, 3, 4, 5].map((q) => (
           <option key={q} value={q}>
             {q.toString().padStart(2, "0")}
           </option>

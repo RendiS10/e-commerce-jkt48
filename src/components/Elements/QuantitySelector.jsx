@@ -1,6 +1,6 @@
 import React from "react";
 
-function QuantitySelector({ value, setValue, min = 1, max = 10 }) {
+function QuantitySelector({ value, setValue, min = 0, max = 10 }) {
   return (
     <div className="flex items-center gap-2">
       <button

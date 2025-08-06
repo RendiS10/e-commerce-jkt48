@@ -17,6 +17,8 @@ const initialCart = [
       "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?auto=format&fit=crop&w=400&q=80",
     price: 650,
     quantity: 1,
+    color: 0,
+    size: 0,
   },
   {
     id: 2,
@@ -25,12 +27,23 @@ const initialCart = [
       "https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=400&q=80",
     price: 550,
     quantity: 2,
+    color: 0,
+    size: 0,
   },
 ];
 
 function Checkout() {
-  const [cart, setCart] = useState(initialCart);
+  // Ambil cart dari localStorage jika ada, jika tidak pakai initialCart
+  const [cart, setCart] = useState(() => {
+    const saved = localStorage.getItem("cart");
+    return saved ? JSON.parse(saved) : initialCart;
+  });
   const [coupon, setCoupon] = useState("");
+
+  // Sync perubahan cart ke localStorage
+  React.useEffect(() => {
+    localStorage.setItem("cart", JSON.stringify(cart));
+  }, [cart]);
 
   const handleQuantityChange = (id, value) => {
     setCart((prev) =>
@@ -50,8 +63,13 @@ function Checkout() {
   };
 
   const subtotal = cart.reduce(
-    (sum, item) => sum + item.price * item.quantity,
+    (sum, item) => sum + (item.quantity > 0 ? item.price * item.quantity : 0),
     0
+  );
+
+  // Jika quantity 0, set price juga 0 pada tampilan
+  const displayCart = cart.map((item) =>
+    item.quantity > 0 ? item : { ...item, price: 0 }
   );
 
   return (
@@ -70,7 +88,7 @@ function Checkout() {
         />
         {/* Cart Table */}
         <CartTable
-          cart={cart}
+          cart={displayCart}
           onRemove={handleRemove}
           onQuantityChange={handleQuantityChange}
         />

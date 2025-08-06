@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import RatingStars from "../Elements/RatingStars";
 import PriceTag from "../Elements/PriceTag";
 import ColorSelector from "../Elements/ColorSelector";
@@ -15,6 +16,33 @@ function ProductDetailInfo({ product }) {
   const [color, setColor] = useState(colors[0] || "");
   const [size, setSize] = useState(sizes[0] || "");
   const [qty, setQty] = useState(1);
+  const navigate = useNavigate();
+
+  const handleAddToCart = () => {
+    // Ambil cart lama dari localStorage
+    const cart = JSON.parse(localStorage.getItem("cart")) || [];
+    // Buat item baru
+    const item = {
+      id: product.product_id || product.id,
+      name: product.product_name || product.name,
+      image: product.main_image,
+      price: Number(product.price),
+      quantity: qty,
+      color,
+      size,
+    };
+    // Cek jika produk dengan varian sama sudah ada, update qty
+    const idx = cart.findIndex(
+      (i) => i.id === item.id && i.color === item.color && i.size === item.size
+    );
+    if (idx !== -1) {
+      cart[idx].quantity += qty;
+    } else {
+      cart.push(item);
+    }
+    localStorage.setItem("cart", JSON.stringify(cart));
+    navigate("/checkout");
+  };
 
   return (
     <div className="flex-1">
@@ -45,7 +73,10 @@ function ProductDetailInfo({ product }) {
         <Button className="bg-[#cd0c0d] text-white px-6 py-2 rounded">
           Buy Now
         </Button>
-        <Button className="bg-green-600 text-white px-6 py-2 rounded">
+        <Button
+          className="bg-green-600 text-white px-6 py-2 rounded"
+          onClick={handleAddToCart}
+        >
           Masukkan ke Keranjang
         </Button>
         <WishlistButton />
