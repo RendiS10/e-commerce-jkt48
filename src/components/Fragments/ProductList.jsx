@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import ProductCard from "../Elements/ProductCard";
+import Whistlist from "./Whistlist";
 
 function ProductList({ category }) {
   const [products, setProducts] = useState([]);
@@ -29,28 +30,31 @@ function ProductList({ category }) {
     return <div className="text-center text-red-500 py-8">{error}</div>;
 
   return (
-    <div className="flex gap-8 justify-center items-center my-8 flex-wrap">
-      {products.map((p) => (
-        <ProductCard
-          key={p.product_id || p.id}
-          image={
-            p.main_image &&
-            (p.main_image.startsWith("uploads/") ||
-              p.main_image.startsWith("/uploads/"))
-              ? `http://localhost:5000/${p.main_image.replace(/^\/+/g, "")}`
-              : p.main_image && p.main_image.startsWith("http")
-              ? p.main_image
-              : "/no-image.png"
-          }
-          name={p.product_name || p.name}
-          price={Number(p.price)}
-          oldPrice={null}
-          rating={p.average_rating || 0}
-          reviews={p.total_reviews || 0}
-          link={"/detail/" + (p.product_id || p.id)}
-        />
-      ))}
-    </div>
+    <>
+      <div className="flex gap-8 justify-center items-center my-8 flex-wrap">
+        {products.map((p) => (
+          <ProductCard
+            key={p.product_id || p.id}
+            image={
+              p.main_image &&
+              (p.main_image.startsWith("uploads/") ||
+                p.main_image.startsWith("/uploads/"))
+                ? `http://localhost:5000/${p.main_image.replace(/^\/+/g, "")}`
+                : p.main_image && p.main_image.startsWith("http")
+                ? p.main_image
+                : "/no-image.png"
+            }
+            name={p.product_name || p.name}
+            price={Number(p.price)}
+            oldPrice={null}
+            rating={p.average_rating || 0}
+            reviews={p.total_reviews || 0}
+            link={"/detail/" + (p.product_id || p.id)}
+          />
+        ))}
+      </div>
+      <Whistlist />
+    </>
   );
 }
 

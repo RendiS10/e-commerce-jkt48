@@ -4,7 +4,7 @@ import { createRoot } from "react-dom/client";
 import Home from "./pages/Home.jsx";
 import Login from "./pages/Login.jsx";
 import Register from "./pages/Register.jsx";
-import Whistlist from "./pages/Whistlist.jsx";
+import Whistlist from "./components/Fragments/Whistlist.jsx";
 import Checkout from "./pages/Checkout.jsx";
 import Pembayaran from "./pages/Pembayaran.jsx";
 import DetailProduct from "./pages/DetailProduct.jsx";
@@ -21,10 +21,6 @@ const router = createBrowserRouter([
   {
     path: "/register",
     element: <Register />,
-  },
-  {
-    path: "/whistlist",
-    element: <Whistlist />,
   },
   {
     path: "/checkout",
