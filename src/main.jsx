@@ -31,7 +31,7 @@ const router = createBrowserRouter([
     element: <Pembayaran />,
   },
   {
-    path: "/detailproduct",
+    path: "/detail/:id",
     element: <DetailProduct />,
   },
 ]);

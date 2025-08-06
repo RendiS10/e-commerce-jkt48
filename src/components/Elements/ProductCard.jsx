@@ -6,8 +6,6 @@ function ProductCard({ image, name, price, oldPrice, rating, reviews, link }) {
     <Link
       to={link}
       className="bg-white rounded-[10px] shadow-[0_2px_8px_rgba(0,0,0,0.04)] border border-[#eee] w-[200px] p-4 pt-4 pb-3 flex flex-col gap-2 relative transition hover:shadow-md"
-      target="_blank"
-      rel="noopener noreferrer"
     >
       <div className="relative w-full h-[120px] flex items-center justify-center bg-[#fafafa] rounded-lg">
         <img

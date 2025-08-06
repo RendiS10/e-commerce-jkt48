@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 import Breadcrumb from "../components/Elements/Breadcrumb";
 import ProductDetailSection from "../components/Fragments/ProductDetailSection";
 import RelatedProducts from "../components/Fragments/RelatedProducts";
@@ -6,43 +7,55 @@ import Header from "../components/Layouts/Header";
 import Navbar from "../components/Layouts/Navbar";
 import Footer from "../components/Layouts/Footer";
 
-const product = {
-  name: "Havic HV G-92 Gamepad",
-  images: [
-    "/img/gamepad1.png",
-    "/img/gamepad2.png",
-    "/img/gamepad3.png",
-    "/img/gamepad4.png",
-  ],
-  price: 192,
-  oldPrice: null,
-  rating: 4.5,
-  reviews: 150,
-  stock: true,
-  description: "Playstation 5 Controller Skin High quality vinyl ...",
-  colors: ["#e74c3c", "#34495e"],
-  sizes: ["XS", "S", "M", "L", "XL"],
-};
-
-const related = [
-  // ...array produk terkait, gunakan data ProductCard
-];
-
 function DetailProduct() {
+  const { id } = useParams();
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    setLoading(true);
+    setError("");
+    fetch(`http://localhost:5000/api/products/${id}`)
+      .then((res) => {
+        if (!res.ok) throw new Error("Produk tidak ditemukan");
+        return res.json();
+      })
+      .then((data) => {
+        setProduct(data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        setError(err.message || "Gagal memuat produk");
+        setLoading(false);
+      });
+  }, [id]);
+
+  // Dummy related products, bisa diganti dengan fetch produk terkait
+  const related = [];
+
   return (
     <>
       <Header />
       <Navbar />
       <div className="max-w-6xl mx-auto px-4 py-6">
-        <Breadcrumb
-          items={[
-            { label: "Account", href: "#" },
-            { label: "Gaming", href: "#" },
-            { label: product.name, active: true },
-          ]}
-        />
-        <ProductDetailSection product={product} />
-        <RelatedProducts products={related} />
+        {loading ? (
+          <div className="text-center py-8">Loading...</div>
+        ) : error ? (
+          <div className="text-center text-red-500 py-8">{error}</div>
+        ) : product ? (
+          <>
+            <Breadcrumb
+              items={[
+                { label: "Home", href: "/" },
+                { label: product.category_name || "Kategori", href: "#" },
+                { label: product.product_name || product.name, active: true },
+              ]}
+            />
+            <ProductDetailSection product={product} />
+            <RelatedProducts products={related} />
+          </>
+        ) : null}
       </div>
       <Footer />
     </>
