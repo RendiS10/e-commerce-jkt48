@@ -1,7 +1,7 @@
 import React from "react";
-import ProductCard from "../../components/Elements/ProductCard";
+import ProductCard from "../Elements/ProductCard";
 
-function WishlistSection({ products }) {
+function ProductLainSection({ products }) {
   return (
     <div className="mb-8">
       <div className="flex flex-wrap gap-6">
@@ -27,4 +27,4 @@ function WishlistSection({ products }) {
   );
 }
 
-export default WishlistSection;
+export default ProductLainSection;

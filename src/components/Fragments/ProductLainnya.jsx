@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
-import WishlistSection from "./WishlistSection";
+import ProductLainSection from "./ProductLainSection";
 
-function Whistlist() {
+function ProductLainnya() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -29,7 +29,7 @@ function Whistlist() {
         <span className="w-2 h-6 bg-[#cd0c0d] rounded mr-2 inline-block"></span>
         <span className="text-lg font-medium text-[#222]">Produk Lainnya</span>
       </div>
-      <WishlistSection
+      <ProductLainSection
         products={products.map((p) => ({
           image:
             p.main_image &&
@@ -51,4 +51,4 @@ function Whistlist() {
   );
 }
 
-export default Whistlist;
+export default ProductLainnya;
