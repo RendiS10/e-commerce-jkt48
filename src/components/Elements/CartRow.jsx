@@ -2,6 +2,15 @@ import React from "react";
 import Button from "./Button";
 
 function CartRow({ item, onRemove, onQuantityChange }) {
+  // Fungsi format Rupiah
+  function formatRupiah(amount) {
+    if (!amount || isNaN(amount)) return "Rp0";
+    let str = amount.toString().replace(/[^\d,]/g, "");
+    let [main, decimal] = str.split(",");
+    main = main || "0";
+    let formatted = main.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    return "Rp" + formatted + (decimal ? "," + decimal : "");
+  }
   // Ambil quantity asli dari item.quantity (tanpa padStart)
   // Ambil image dari item.Product.main_image jika ada, fallback ke item.image
   let image =
@@ -37,7 +46,9 @@ function CartRow({ item, onRemove, onQuantityChange }) {
         />
         <span className="font-medium text-gray-800">{item.name}</span>
       </div>
-      <span className="font-medium text-gray-700">${item.price}</span>
+      <span className="font-medium text-gray-700">
+        {formatRupiah(item.price)}
+      </span>
       <input
         type="number"
         min={0}
@@ -52,7 +63,7 @@ function CartRow({ item, onRemove, onQuantityChange }) {
         className="border border-gray-300 rounded px-2 py-1 w-16 text-center focus:border-[#cd0c0d]"
       />
       <span className="font-medium text-gray-700">
-        ${item.price * item.quantity}
+        {formatRupiah(item.price * item.quantity)}
       </span>
     </div>
   );

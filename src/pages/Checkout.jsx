@@ -2,9 +2,6 @@ import React, { useState, useEffect } from "react";
 import Button from "../components/Elements/Button";
 import CartTable from "../components/Fragments/CartTable";
 import CartTotal from "../components/Elements/CartTotal";
-import CouponForm from "../components/Fragments/CouponForm";
-import Breadcrumb from "../components/Elements/Breadcrumb";
-import CartActions from "../components/Elements/CartActions";
 import Header from "../components/Layouts/Header";
 import Navbar from "../components/Layouts/Navbar";
 import Footer from "../components/Layouts/Footer";
@@ -18,8 +15,8 @@ function Checkout() {
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
-      setError("Silakan login untuk melihat keranjang.");
-      setLoading(false);
+      alert("Silakan login untuk melihat keranjang.");
+      window.location.href = "/login";
       return;
     }
     fetch("http://localhost:5000/api/cart", {

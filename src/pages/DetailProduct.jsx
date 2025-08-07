@@ -12,6 +12,9 @@ function DetailProduct() {
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [variants, setVariants] = useState([]);
+  const [selectedSize, setSelectedSize] = useState("");
+  const [selectedVariant, setSelectedVariant] = useState(null);
 
   useEffect(() => {
     setLoading(true);
@@ -29,7 +32,18 @@ function DetailProduct() {
         setError(err.message || "Gagal memuat produk");
         setLoading(false);
       });
+    fetch(`http://localhost:5000/api/variants`)
+      .then((res) => res.json())
+      .then((data) => setVariants(data.filter((v) => v.product_id == id)));
   }, [id]);
+
+  useEffect(() => {
+    if (selectedSize) {
+      setSelectedVariant(variants.find((v) => v.size === selectedSize));
+    } else {
+      setSelectedVariant(null);
+    }
+  }, [selectedSize, variants]);
 
   // Dummy related products, bisa diganti dengan fetch produk terkait
   const related = [];
@@ -44,16 +58,7 @@ function DetailProduct() {
         ) : error ? (
           <div className="text-center text-red-500 py-8">{error}</div>
         ) : product ? (
-          <>
-            <Breadcrumb
-              items={[
-                { label: "Home", href: "/" },
-                { label: product.category_name || "Kategori", href: "#" },
-                { label: product.product_name || product.name, active: true },
-              ]}
-            />
-            <ProductDetailSection product={product} />
-          </>
+          <ProductDetailSection product={product} />
         ) : null}
       </div>
       <Footer />

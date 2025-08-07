@@ -6,8 +6,8 @@ function CartTable({ cart, onRemove, onQuantityChange }) {
     <div className="bg-white rounded-lg shadow-none mb-6">
       <div className="grid grid-cols-4 text-left font-semibold text-gray-700 px-6 py-4 border-b">
         <span>Product</span>
-        <span>Price</span>
-        <span>Quantity</span>
+        <span>Harga</span>
+        <span>Jumlah</span>
         <span>Subtotal</span>
       </div>
       {cart.map((item) => (

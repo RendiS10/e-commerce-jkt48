@@ -9,16 +9,45 @@ import WishlistButton from "../Elements/WishlistButton";
 import DeliveryInfo from "../Elements/DeliveryInfo";
 
 function ProductDetailInfo({ product }) {
+  // Fungsi format Rupiah
+  function formatRupiah(amount) {
+    if (!amount) return "Rp0";
+    // Hilangkan semua karakter non-digit dan non-koma
+    let str = amount.toString().replace(/[^\d,]/g, "");
+    // Jika ada koma/desimal, pisahkan
+    let [main, decimal] = str.split(",");
+    let formatted = main.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    return "Rp" + formatted + (decimal ? "," + decimal : "");
+  }
   // Pastikan colors dan sizes selalu array
   const colors = Array.isArray(product.colors) ? product.colors : [];
   const sizes = Array.isArray(product.sizes) ? product.sizes : [];
   const [color, setColor] = useState(colors[0] || "");
   const [size, setSize] = useState(sizes[0] || "");
   const [qty, setQty] = useState(1);
-  // Tambahkan state untuk loading cart item
   const [cartLoading, setCartLoading] = useState(false);
+  const [variants, setVariants] = useState([]);
+  const [selectedVariant, setSelectedVariant] = useState(null);
   const navigate = useNavigate();
   const isLoggedIn = !!localStorage.getItem("token");
+
+  useEffect(() => {
+    if (product?.product_id) {
+      fetch(`http://localhost:5000/api/variants`)
+        .then((res) => res.json())
+        .then((data) =>
+          setVariants(data.filter((v) => v.product_id == product.product_id))
+        );
+    }
+  }, [product?.product_id]);
+
+  useEffect(() => {
+    if (size) {
+      setSelectedVariant(variants.find((v) => v.size === size));
+    } else {
+      setSelectedVariant(null);
+    }
+  }, [size, variants]);
 
   // Prefill qty dari cart jika sudah ada item ini di cart
   useEffect(() => {
@@ -120,15 +149,47 @@ function ProductDetailInfo({ product }) {
           {product.stock ? "In Stock" : "Out of Stock"}
         </span>
       </div>
-      <PriceTag price={product.price} oldPrice={product.oldPrice} />
+      <PriceTag
+        price={formatRupiah(product.price)}
+        oldPrice={product.oldPrice ? formatRupiah(product.oldPrice) : undefined}
+      />
       <p className="text-gray-600 my-3">{product.description}</p>
-      <div className="flex items-center gap-2 mb-2">
-        <span>Colours:</span>
-        <ColorSelector colors={colors} value={color} onChange={setColor} />
+      {/* Komponen ColorSelector dan SizeSelector dihapus, hanya UI variant yang tampil */}
+      {/* UI untuk size, stok, dan warna dari variant */}
+      <div className="mt-6 mb-4">
+        <div className="font-semibold mb-2">Ukuran Tersedia:</div>
+        {Array.from(new Set(variants.map((v) => v.size).filter(Boolean))).map(
+          (sz) => (
+            <button
+              key={sz}
+              onClick={() => setSize(sz)}
+              className={`px-3 py-1 rounded border m-1 ${
+                size === sz ? "bg-[#cd0c0d] text-white" : "bg-white"
+              }`}
+            >
+              {sz}
+            </button>
+          )
+        )}
+        {selectedVariant && (
+          <div className="mt-2">
+            <span className="font-semibold">Stok:</span>{" "}
+            {selectedVariant.variant_stock}
+            <br />
+            <span className="font-semibold">Warna:</span>{" "}
+            {selectedVariant.color || "-"}
+          </div>
+        )}
       </div>
-      <div className="flex items-center gap-2 mb-2">
-        <span>Size:</span>
-        <SizeSelector sizes={sizes} value={size} onChange={setSize} />
+      <div className="mb-4">
+        <span className="font-semibold">Warna Tersedia:</span>
+        {Array.from(new Set(variants.map((v) => v.color).filter(Boolean))).map(
+          (clr) => (
+            <span key={clr} className="ml-2 px-2 py-1 border rounded">
+              {clr}
+            </span>
+          )
+        )}
       </div>
       <div className="flex items-center gap-2 mb-4">
         <input
