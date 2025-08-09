@@ -8,8 +8,11 @@ import Button from "../components/Elements/Button";
 function Orders() {
   const navigate = useNavigate();
   const [orders, setOrders] = useState([]);
+  const [filteredOrders, setFilteredOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [statusFilter, setStatusFilter] = useState("Semua"); // Filter state
+  const [searchQuery, setSearchQuery] = useState(""); // Search state
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -37,6 +40,7 @@ function Orders() {
           );
         });
         setOrders(data);
+        setFilteredOrders(data); // Initialize filtered orders
         setLoading(false);
       })
       .catch((error) => {
@@ -45,6 +49,47 @@ function Orders() {
         setLoading(false);
       });
   }, [navigate]);
+
+  // Filter function
+  const applyFilters = () => {
+    let filtered = orders;
+
+    // Apply status filter
+    if (statusFilter !== "Semua") {
+      filtered = filtered.filter((order) => {
+        const orderStatus = order.order_status || "Menunggu Konfirmasi";
+        return orderStatus === statusFilter;
+      });
+    }
+
+    // Apply search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.trim().toLowerCase();
+      filtered = filtered.filter((order) => {
+        return (
+          order.order_id.toString().includes(query) ||
+          (order.tracking_number &&
+            order.tracking_number.toLowerCase().includes(query)) ||
+          (order.notes && order.notes.toLowerCase().includes(query))
+        );
+      });
+    }
+
+    setFilteredOrders(filtered);
+  };
+
+  const handleStatusFilter = (selectedStatus) => {
+    setStatusFilter(selectedStatus);
+  };
+
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+  };
+
+  // Update filtered orders when filters change
+  useEffect(() => {
+    applyFilters();
+  }, [orders, statusFilter, searchQuery]);
 
   const formatRupiah = (amount) => {
     if (!amount || isNaN(amount)) return "Rp0";
@@ -194,7 +239,158 @@ function Orders() {
           </Button>
         </div>
 
-        {orders.length === 0 ? (
+        {/* Filter Section */}
+        <div className="mb-6 bg-white p-4 rounded-lg border shadow-sm">
+          {/* Search Bar */}
+          <div className="mb-4">
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Cari berdasarkan Order ID, nomor resi, atau catatan..."
+                value={searchQuery}
+                onChange={handleSearchChange}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#cd0c0d] focus:border-[#cd0c0d] text-sm"
+              />
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <svg
+                  className="h-4 w-4 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
+                </svg>
+              </div>
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                >
+                  <svg
+                    className="h-4 w-4 text-gray-400 hover:text-gray-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Status Filter */}
+          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+              <span className="text-sm font-medium text-gray-700 whitespace-nowrap">
+                Filter Status:
+              </span>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  "Semua",
+                  "Menunggu Konfirmasi",
+                  "Diproses",
+                  "Dikirim",
+                  "Selesai",
+                  "Dibatalkan",
+                ].map((status) => {
+                  const count =
+                    status === "Semua"
+                      ? orders.length
+                      : orders.filter(
+                          (order) =>
+                            (order.order_status || "Menunggu Konfirmasi") ===
+                            status
+                        ).length;
+
+                  return (
+                    <button
+                      key={status}
+                      onClick={() => handleStatusFilter(status)}
+                      className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
+                        statusFilter === status
+                          ? "bg-[#cd0c0d] text-white"
+                          : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                      } ${
+                        count === 0 && status !== "Semua"
+                          ? "opacity-50 cursor-not-allowed"
+                          : ""
+                      }`}
+                      disabled={count === 0 && status !== "Semua"}
+                    >
+                      {status}
+                      <span className="ml-1 text-xs opacity-75">({count})</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Quick stats */}
+            <div className="text-xs text-gray-500 bg-gray-50 px-3 py-2 rounded">
+              Total: {orders.length} pesanan
+            </div>
+          </div>
+        </div>
+
+        {filteredOrders.length === 0 && orders.length > 0 ? (
+          <div className="text-center py-12">
+            <div className="bg-gray-100 rounded-lg p-8">
+              {searchQuery ? (
+                <>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    Tidak ditemukan pesanan dengan kata kunci "{searchQuery}"
+                  </h3>
+                  <p className="text-gray-600 mb-4">
+                    Coba gunakan kata kunci lain atau ubah filter status.
+                  </p>
+                  <div className="flex gap-2 justify-center">
+                    <button
+                      onClick={() => setSearchQuery("")}
+                      className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+                    >
+                      Hapus Pencarian
+                    </button>
+                    <button
+                      onClick={() => {
+                        setSearchQuery("");
+                        handleStatusFilter("Semua");
+                      }}
+                      className="bg-[#cd0c0d] text-white px-4 py-2 rounded hover:bg-red-700"
+                    >
+                      Reset Semua Filter
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    Tidak ada pesanan dengan status "{statusFilter}"
+                  </h3>
+                  <p className="text-gray-600 mb-4">
+                    Coba ubah filter status untuk melihat pesanan lainnya.
+                  </p>
+                  <button
+                    onClick={() => handleStatusFilter("Semua")}
+                    className="bg-[#cd0c0d] text-white px-6 py-2 rounded hover:bg-red-700"
+                  >
+                    Tampilkan Semua
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        ) : orders.length === 0 ? (
           <div className="text-center py-12">
             <div className="bg-gray-100 rounded-lg p-8">
               <h3 className="text-lg font-medium text-gray-900 mb-2">
@@ -213,7 +409,39 @@ function Orders() {
           </div>
         ) : (
           <div className="space-y-6">
-            {orders.map((order) => (
+            {/* Info showing filtered results */}
+            <div className="text-sm text-gray-600 bg-blue-50 p-3 rounded-lg border border-blue-200">
+              {searchQuery ? (
+                <span>
+                  🔍 Hasil pencarian "<strong>{searchQuery}</strong>":
+                  <strong> {filteredOrders.length}</strong> pesanan ditemukan
+                  {statusFilter !== "Semua" && (
+                    <span>
+                      {" "}
+                      dengan status "<strong>{statusFilter}</strong>"
+                    </span>
+                  )}
+                </span>
+              ) : statusFilter === "Semua" ? (
+                <span>
+                  📋 Menampilkan <strong>{filteredOrders.length}</strong> dari{" "}
+                  <strong>{orders.length}</strong> total pesanan
+                </span>
+              ) : (
+                <span>
+                  🔍 Menampilkan <strong>{filteredOrders.length}</strong>{" "}
+                  pesanan dengan status "<strong>{statusFilter}</strong>"
+                  {filteredOrders.length !== orders.length && (
+                    <span>
+                      {" "}
+                      dari <strong>{orders.length}</strong> total pesanan
+                    </span>
+                  )}
+                </span>
+              )}
+            </div>
+
+            {filteredOrders.map((order) => (
               <div
                 key={order.order_id}
                 className="bg-white border rounded-lg p-6 shadow-sm"
