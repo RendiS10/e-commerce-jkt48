@@ -102,12 +102,16 @@ function Checkout() {
           price: item.Product?.price || 0,
           name: item.Product?.product_name || item.Product?.name || item.name,
           image: item.Product?.main_image || item.image,
+          size: item.ProductVariant?.size || null,
+          color: item.ProductVariant?.color || null,
         }
       : {
           ...item,
           price: 0,
           name: item.Product?.product_name || item.Product?.name || item.name,
           image: item.Product?.main_image || item.image,
+          size: item.ProductVariant?.size || null,
+          color: item.ProductVariant?.color || null,
         }
   );
 

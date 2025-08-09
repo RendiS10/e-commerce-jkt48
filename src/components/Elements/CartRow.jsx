@@ -26,7 +26,7 @@ function CartRow({ item, onRemove, onQuantityChange }) {
       : item.image) || "/no-image.png";
 
   return (
-    <div className="grid grid-cols-4 items-center px-6 py-4 border-b last:border-b-0 bg-white relative">
+    <div className="grid grid-cols-6 items-center px-6 py-4 border-b last:border-b-0 bg-white relative">
       <div className="flex items-center gap-4">
         <button
           className="absolute left-2 top-2 bg-[#cd0c0d] text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold"
@@ -46,6 +46,12 @@ function CartRow({ item, onRemove, onQuantityChange }) {
         />
         <span className="font-medium text-gray-800">{item.name}</span>
       </div>
+      <span className="text-sm text-gray-600">
+        {item.ProductVariant?.size || item.size || "-"}
+      </span>
+      <span className="text-sm text-gray-600">
+        {item.ProductVariant?.color || item.color || "-"}
+      </span>
       <span className="font-medium text-gray-700">
         {formatRupiah(item.price)}
       </span>
