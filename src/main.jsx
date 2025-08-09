@@ -4,6 +4,7 @@ import { createRoot } from "react-dom/client";
 import Home from "./pages/Home.jsx";
 import Login from "./pages/Login.jsx";
 import Register from "./pages/Register.jsx";
+import Profile from "./pages/Profile.jsx";
 import Whistlist from "./components/Fragments/ProductLainnya.jsx";
 import Checkout from "./pages/Checkout.jsx";
 import Pembayaran from "./pages/Pembayaran.jsx";
@@ -92,6 +93,10 @@ const router = createBrowserRouter([
   {
     path: "/register",
     element: <Register />,
+  },
+  {
+    path: "/profile",
+    element: <Profile />,
   },
   {
     path: "/checkout",
