@@ -95,7 +95,9 @@ function Orders() {
       // Update status pesanan di state lokal
       setOrders((prevOrders) =>
         prevOrders.map((order) =>
-          order.order_id === orderId ? { ...order, order_status: "9" } : order
+          order.order_id === orderId
+            ? { ...order, order_status: "Dibatalkan" }
+            : order
         )
       );
     } catch (error) {
@@ -105,13 +107,9 @@ function Orders() {
   };
 
   const canCancelOrder = (orderStatus) => {
-    // Status yang bisa dibatalkan (termasuk legacy format)
+    // Status yang bisa dibatalkan - hanya "Menunggu Konfirmasi"
     const cancellableStatuses = [
-      "1",
-      "2",
-      1,
-      2, // Numeric status codes (new format)
-      "pending_payment", // Legacy status yang masih ada di database
+      "Menunggu Konfirmasi", // Status awal yang bisa dibatalkan
     ];
 
     const result = cancellableStatuses.includes(orderStatus);
@@ -136,31 +134,15 @@ function Orders() {
         text: "Menunggu Konfirmasi",
         color: "bg-yellow-100 text-yellow-800",
       },
-      // String status codes (primary)
-      1: {
+      // Status text yang baru
+      "Menunggu Konfirmasi": {
         text: "Menunggu Konfirmasi",
         color: "bg-yellow-100 text-yellow-800",
       },
-      2: { text: "Dikonfirmasi", color: "bg-green-100 text-green-800" },
-      3: { text: "Diproses", color: "bg-purple-100 text-purple-800" },
-      4: { text: "Dikirim", color: "bg-indigo-100 text-indigo-800" },
-      5: { text: "Selesai", color: "bg-gray-100 text-gray-800" },
-      9: { text: "Dibatalkan", color: "bg-red-100 text-red-800" },
-      // Numeric status codes (backup)
-      1: {
-        text: "Menunggu Konfirmasi",
-        color: "bg-yellow-100 text-yellow-800",
-      },
-      2: { text: "Dikonfirmasi", color: "bg-green-100 text-green-800" },
-      3: { text: "Diproses", color: "bg-purple-100 text-purple-800" },
-      4: { text: "Dikirim", color: "bg-indigo-100 text-indigo-800" },
-      5: { text: "Selesai", color: "bg-gray-100 text-gray-800" },
-      9: { text: "Dibatalkan", color: "bg-red-100 text-red-800" },
-      // Legacy status support
-      pending_payment: {
-        text: "Menunggu Konfirmasi",
-        color: "bg-yellow-100 text-yellow-800",
-      },
+      Diproses: { text: "Diproses", color: "bg-purple-100 text-purple-800" },
+      Dikirim: { text: "Dikirim", color: "bg-indigo-100 text-indigo-800" },
+      Selesai: { text: "Selesai", color: "bg-green-100 text-green-800" },
+      Dibatalkan: { text: "Dibatalkan", color: "bg-red-100 text-red-800" },
     };
     const status_info = statusMap[status] || {
       text: status || "Pesanan Baru",
@@ -406,55 +388,29 @@ function Orders() {
 
                 {/* Action Buttons */}
                 <div className="border-t pt-4 mt-4 flex flex-wrap gap-2">
-                  {(order.order_status === "2" || order.order_status === 2) && (
-                    <span className="bg-green-100 text-green-800 px-3 py-1 rounded text-sm">
-                      ✅ Pesanan COD sudah dibayar - Siap dikirim
-                    </span>
-                  )}
-                  {(order.order_status === "paid" ||
-                    order.order_status === "confirmed") && (
-                    <span className="bg-green-100 text-green-800 px-3 py-1 rounded text-sm">
-                      ✅ Pesanan COD dikonfirmasi - Siap dikirim
-                    </span>
-                  )}
-                  {(order.order_status === "3" ||
-                    order.order_status === 3 ||
-                    order.order_status === "process" ||
-                    order.order_status === "processing") && (
+                  {order.order_status === "Diproses" && (
                     <span className="bg-purple-100 text-purple-800 px-3 py-1 rounded text-sm">
                       📦 Pesanan sedang diproses
                     </span>
                   )}
-                  {(order.order_status === "4" ||
-                    order.order_status === 4 ||
-                    order.order_status === "ship" ||
-                    order.order_status === "shipped") && (
+                  {order.order_status === "Dikirim" && (
                     <span className="bg-indigo-100 text-indigo-800 px-3 py-1 rounded text-sm">
                       🚚 Pesanan dalam perjalanan
                     </span>
                   )}
-                  {(order.order_status === "5" ||
-                    order.order_status === 5 ||
-                    order.order_status === "done" ||
-                    order.order_status === "delivered") && (
+                  {order.order_status === "Selesai" && (
                     <span className="bg-green-100 text-green-800 px-3 py-1 rounded text-sm">
                       ✅ Pesanan telah sampai
                     </span>
                   )}
-                  {(order.order_status === "1" ||
-                    order.order_status === 1 ||
-                    order.order_status === "new" ||
-                    order.order_status === "pending" ||
-                    order.order_status === "pending_payment" ||
+                  {(order.order_status === "Menunggu Konfirmasi" ||
                     order.order_status === null ||
                     order.order_status === undefined) && (
                     <span className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded text-sm">
                       ⏳ Menunggu konfirmasi admin - COD belum dikonfirmasi
                     </span>
                   )}
-                  {(order.order_status === "9" ||
-                    order.order_status === 9 ||
-                    order.order_status === "cancelled") && (
+                  {order.order_status === "Dibatalkan" && (
                     <span className="bg-red-100 text-red-800 px-3 py-1 rounded text-sm">
                       ❌ Pesanan dibatalkan
                     </span>
