@@ -27,6 +27,15 @@ function Orders() {
         return res.json();
       })
       .then((data) => {
+        console.log("Orders received from backend:", data);
+        // Debug: Check status types
+        data.forEach((order) => {
+          console.log(
+            `Order ${order.order_id}: status="${
+              order.order_status
+            }" (type: ${typeof order.order_status})`
+          );
+        });
         setOrders(data);
         setLoading(false);
       })
@@ -42,56 +51,116 @@ function Orders() {
     return "Rp" + amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
   };
 
+  const handleCancelOrder = async (orderId) => {
+    // Debug: Log order details before cancellation
+    const orderToCancel = orders.find((order) => order.order_id === orderId);
+    console.log("Attempting to cancel order:", {
+      orderId: orderId,
+      orderStatus: orderToCancel?.order_status,
+      statusType: typeof orderToCancel?.order_status,
+      canCancel: canCancelOrder(orderToCancel?.order_status),
+    });
+
+    if (!window.confirm("Apakah Anda yakin ingin membatalkan pesanan ini?")) {
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `http://localhost:5000/api/orders/${orderId}/cancel`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Cancel order failed:", {
+          status: response.status,
+          statusText: response.statusText,
+          errorData: errorData,
+          orderId: orderId,
+        });
+        throw new Error(errorData.message || "Gagal membatalkan pesanan");
+      }
+
+      const result = await response.json();
+      alert("Pesanan berhasil dibatalkan");
+
+      // Update status pesanan di state lokal
+      setOrders((prevOrders) =>
+        prevOrders.map((order) =>
+          order.order_id === orderId ? { ...order, order_status: "9" } : order
+        )
+      );
+    } catch (error) {
+      console.error("Error cancelling order:", error);
+      alert(error.message || "Gagal membatalkan pesanan. Silakan coba lagi.");
+    }
+  };
+
+  const canCancelOrder = (orderStatus) => {
+    // Status yang bisa dibatalkan (termasuk legacy format)
+    const cancellableStatuses = [
+      "1",
+      "2",
+      1,
+      2, // Numeric status codes (new format)
+      "pending_payment", // Legacy status yang masih ada di database
+    ];
+
+    const result = cancellableStatuses.includes(orderStatus);
+    console.log("canCancelOrder check:", {
+      orderStatus,
+      statusType: typeof orderStatus,
+      cancellableStatuses,
+      result,
+    });
+
+    return result;
+  };
+
   const getStatusBadge = (status) => {
     const statusMap = {
       // Handle null or undefined status
       null: {
-        text: "Pesanan Baru",
-        color: "bg-blue-100 text-blue-800",
-      },
-      undefined: {
-        text: "Pesanan Baru",
-        color: "bg-blue-100 text-blue-800",
-      },
-      // Numeric status codes for database compatibility
-      1: {
-        text: "Pesanan Baru",
-        color: "bg-blue-100 text-blue-800",
-      },
-      1: {
-        text: "Pesanan Baru",
-        color: "bg-blue-100 text-blue-800",
-      },
-      2: { text: "Sudah Dibayar COD", color: "bg-green-100 text-green-800" },
-      2: { text: "Sudah Dibayar COD", color: "bg-green-100 text-green-800" },
-      3: { text: "Diproses", color: "bg-purple-100 text-purple-800" },
-      3: { text: "Diproses", color: "bg-purple-100 text-purple-800" },
-      4: { text: "Dikirim", color: "bg-indigo-100 text-indigo-800" },
-      4: { text: "Dikirim", color: "bg-indigo-100 text-indigo-800" },
-      5: { text: "Selesai", color: "bg-gray-100 text-gray-800" },
-      5: { text: "Selesai", color: "bg-gray-100 text-gray-800" },
-      9: { text: "Dibatalkan", color: "bg-red-100 text-red-800" },
-      9: { text: "Dibatalkan", color: "bg-red-100 text-red-800" },
-      // Fallback untuk status lama jika ada
-      new: {
-        text: "Pesanan Baru",
-        color: "bg-blue-100 text-blue-800",
-      },
-      paid: { text: "Sudah Dibayar", color: "bg-green-100 text-green-800" },
-      process: { text: "Diproses", color: "bg-purple-100 text-purple-800" },
-      ship: { text: "Dikirim", color: "bg-indigo-100 text-indigo-800" },
-      done: { text: "Selesai", color: "bg-gray-100 text-gray-800" },
-      cancel: { text: "Dibatalkan", color: "bg-red-100 text-red-800" },
-      pending: {
-        text: "Menunggu Pembayaran",
+        text: "Menunggu Konfirmasi",
         color: "bg-yellow-100 text-yellow-800",
       },
-      confirmed: { text: "Dikonfirmasi", color: "bg-green-100 text-green-800" },
-      processing: { text: "Diproses", color: "bg-purple-100 text-purple-800" },
-      shipped: { text: "Dikirim", color: "bg-indigo-100 text-indigo-800" },
-      delivered: { text: "Terkirim", color: "bg-green-100 text-green-800" },
-      completed: { text: "Selesai", color: "bg-gray-100 text-gray-800" },
-      cancelled: { text: "Dibatalkan", color: "bg-red-100 text-red-800" },
+      undefined: {
+        text: "Menunggu Konfirmasi",
+        color: "bg-yellow-100 text-yellow-800",
+      },
+      // String status codes (primary)
+      1: {
+        text: "Menunggu Konfirmasi",
+        color: "bg-yellow-100 text-yellow-800",
+      },
+      2: { text: "Dikonfirmasi", color: "bg-green-100 text-green-800" },
+      3: { text: "Diproses", color: "bg-purple-100 text-purple-800" },
+      4: { text: "Dikirim", color: "bg-indigo-100 text-indigo-800" },
+      5: { text: "Selesai", color: "bg-gray-100 text-gray-800" },
+      9: { text: "Dibatalkan", color: "bg-red-100 text-red-800" },
+      // Numeric status codes (backup)
+      1: {
+        text: "Menunggu Konfirmasi",
+        color: "bg-yellow-100 text-yellow-800",
+      },
+      2: { text: "Dikonfirmasi", color: "bg-green-100 text-green-800" },
+      3: { text: "Diproses", color: "bg-purple-100 text-purple-800" },
+      4: { text: "Dikirim", color: "bg-indigo-100 text-indigo-800" },
+      5: { text: "Selesai", color: "bg-gray-100 text-gray-800" },
+      9: { text: "Dibatalkan", color: "bg-red-100 text-red-800" },
+      // Legacy status support
+      pending_payment: {
+        text: "Menunggu Konfirmasi",
+        color: "bg-yellow-100 text-yellow-800",
+      },
     };
     const status_info = statusMap[status] || {
       text: status || "Pesanan Baru",
@@ -376,12 +445,31 @@ function Orders() {
                     order.order_status === 1 ||
                     order.order_status === "new" ||
                     order.order_status === "pending" ||
+                    order.order_status === "pending_payment" ||
                     order.order_status === null ||
                     order.order_status === undefined) && (
                     <span className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded text-sm">
-                      ⏳ Menunggu konfirmasi pembayaran COD
+                      ⏳ Menunggu konfirmasi admin - COD belum dikonfirmasi
                     </span>
                   )}
+                  {(order.order_status === "9" ||
+                    order.order_status === 9 ||
+                    order.order_status === "cancelled") && (
+                    <span className="bg-red-100 text-red-800 px-3 py-1 rounded text-sm">
+                      ❌ Pesanan dibatalkan
+                    </span>
+                  )}
+
+                  {/* Cancel Button - only show if order can be cancelled */}
+                  {canCancelOrder(order.order_status) && (
+                    <Button
+                      onClick={() => handleCancelOrder(order.order_id)}
+                      className="bg-red-500 text-white px-4 py-2 rounded text-sm hover:bg-red-600 transition-colors"
+                    >
+                      🗑️ Batalkan Pesanan
+                    </Button>
+                  )}
+
                   {order.tracking_number && (
                     <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded text-sm font-mono">
                       📋 Resi: {order.tracking_number}
