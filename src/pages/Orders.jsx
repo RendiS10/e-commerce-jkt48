@@ -44,13 +44,47 @@ function Orders() {
 
   const getStatusBadge = (status) => {
     const statusMap = {
-      pending_payment: {
+      // Handle null or undefined status
+      null: {
+        text: "Pesanan Baru",
+        color: "bg-blue-100 text-blue-800",
+      },
+      undefined: {
+        text: "Pesanan Baru",
+        color: "bg-blue-100 text-blue-800",
+      },
+      // Numeric status codes for database compatibility
+      1: {
+        text: "Pesanan Baru",
+        color: "bg-blue-100 text-blue-800",
+      },
+      1: {
+        text: "Pesanan Baru",
+        color: "bg-blue-100 text-blue-800",
+      },
+      2: { text: "Sudah Dibayar COD", color: "bg-green-100 text-green-800" },
+      2: { text: "Sudah Dibayar COD", color: "bg-green-100 text-green-800" },
+      3: { text: "Diproses", color: "bg-purple-100 text-purple-800" },
+      3: { text: "Diproses", color: "bg-purple-100 text-purple-800" },
+      4: { text: "Dikirim", color: "bg-indigo-100 text-indigo-800" },
+      4: { text: "Dikirim", color: "bg-indigo-100 text-indigo-800" },
+      5: { text: "Selesai", color: "bg-gray-100 text-gray-800" },
+      5: { text: "Selesai", color: "bg-gray-100 text-gray-800" },
+      9: { text: "Dibatalkan", color: "bg-red-100 text-red-800" },
+      9: { text: "Dibatalkan", color: "bg-red-100 text-red-800" },
+      // Fallback untuk status lama jika ada
+      new: {
+        text: "Pesanan Baru",
+        color: "bg-blue-100 text-blue-800",
+      },
+      paid: { text: "Sudah Dibayar", color: "bg-green-100 text-green-800" },
+      process: { text: "Diproses", color: "bg-purple-100 text-purple-800" },
+      ship: { text: "Dikirim", color: "bg-indigo-100 text-indigo-800" },
+      done: { text: "Selesai", color: "bg-gray-100 text-gray-800" },
+      cancel: { text: "Dibatalkan", color: "bg-red-100 text-red-800" },
+      pending: {
         text: "Menunggu Pembayaran",
         color: "bg-yellow-100 text-yellow-800",
-      },
-      payment_uploaded: {
-        text: "Bukti Pembayaran Dikirim",
-        color: "bg-blue-100 text-blue-800",
       },
       confirmed: { text: "Dikonfirmasi", color: "bg-green-100 text-green-800" },
       processing: { text: "Diproses", color: "bg-purple-100 text-purple-800" },
@@ -60,7 +94,7 @@ function Orders() {
       cancelled: { text: "Dibatalkan", color: "bg-red-100 text-red-800" },
     };
     const status_info = statusMap[status] || {
-      text: status,
+      text: status || "Pesanan Baru",
       color: "bg-gray-100 text-gray-800",
     };
     return (
@@ -139,7 +173,10 @@ function Orders() {
                       Order #{order.order_id}
                     </h3>
                     <p className="text-sm text-gray-600">
-                      {new Date(order.created_at).toLocaleDateString("id-ID", {
+                      Dipesan:{" "}
+                      {new Date(
+                        order.order_date || order.created_at
+                      ).toLocaleDateString("id-ID", {
                         year: "numeric",
                         month: "long",
                         day: "numeric",
@@ -147,6 +184,23 @@ function Orders() {
                         minute: "2-digit",
                       })}
                     </p>
+                    {order.updated_at &&
+                      order.updated_at !==
+                        (order.order_date || order.created_at) && (
+                        <p className="text-sm text-gray-500">
+                          Update terakhir:{" "}
+                          {new Date(order.updated_at).toLocaleDateString(
+                            "id-ID",
+                            {
+                              year: "numeric",
+                              month: "long",
+                              day: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            }
+                          )}
+                        </p>
+                      )}
                   </div>
                   {getStatusBadge(order.order_status)}
                 </div>
@@ -160,16 +214,27 @@ function Orders() {
                   </div>
                   <div>
                     <p className="text-sm text-gray-600">Metode Pembayaran</p>
-                    <p className="font-medium">
-                      {order.payment_method === "transfer"
-                        ? "Transfer Bank"
-                        : "Cash on Delivery"}
+                    <p className="font-medium">Cash on Delivery (COD)</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Nomor Resi</p>
+                    <p className="font-medium text-sm text-blue-600">
+                      {order.tracking_number || "Belum tersedia"}
                     </p>
                   </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                   <div>
                     <p className="text-sm text-gray-600">Alamat Pengiriman</p>
                     <p className="font-medium text-sm">
                       {order.shipping_address}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Kota & Kode Pos</p>
+                    <p className="font-medium text-sm">
+                      {order.shipping_city}, {order.shipping_postal_code}
                     </p>
                   </div>
                 </div>
@@ -177,36 +242,85 @@ function Orders() {
                 {/* Order Items */}
                 {order.OrderItems && order.OrderItems.length > 0 && (
                   <div className="border-t pt-4">
-                    <h4 className="font-medium mb-3">Item Pesanan:</h4>
-                    <div className="space-y-2">
+                    <h4 className="font-medium mb-3">
+                      Item Pesanan ({order.OrderItems.length} item):
+                    </h4>
+                    <div className="space-y-3">
                       {order.OrderItems.map((item, index) => (
                         <div
-                          key={index}
-                          className="flex justify-between items-center text-sm"
+                          key={item.order_item_id || index}
+                          className="flex justify-between items-start bg-gray-50 p-3 rounded-lg"
                         >
                           <div className="flex-1">
-                            <span className="font-medium">
-                              {item.Product?.product_name || "Unknown Product"}
-                            </span>
-                            {item.ProductVariant && (
-                              <span className="text-gray-600 ml-2">
-                                (
-                                {item.ProductVariant.size &&
-                                  `Size: ${item.ProductVariant.size}`}
-                                {item.ProductVariant.color &&
-                                  `, Color: ${item.ProductVariant.color}`}
-                                )
-                              </span>
-                            )}
+                            <div className="flex items-center gap-3">
+                              {item.Product?.main_image && (
+                                <img
+                                  src={`http://localhost:5000/${item.Product.main_image.replace(
+                                    /^\/+/,
+                                    ""
+                                  )}`}
+                                  alt={item.Product?.product_name || "Product"}
+                                  className="w-12 h-12 object-contain rounded border"
+                                  onError={(e) => {
+                                    e.target.style.display = "none";
+                                  }}
+                                />
+                              )}
+                              <div>
+                                <span className="font-medium block">
+                                  {item.Product?.product_name ||
+                                    "Unknown Product"}
+                                </span>
+                                {item.ProductVariant && (
+                                  <span className="text-gray-600 text-sm block">
+                                    {item.ProductVariant.size &&
+                                      `Size: ${item.ProductVariant.size}`}
+                                    {item.ProductVariant.color &&
+                                      `, Color: ${item.ProductVariant.color}`}
+                                  </span>
+                                )}
+                                <span className="text-sm text-gray-500">
+                                  Qty: {item.quantity} ×{" "}
+                                  {formatRupiah(item.price_at_purchase)}
+                                </span>
+                              </div>
+                            </div>
                           </div>
                           <div className="text-right">
-                            <span className="text-gray-600">
-                              {item.quantity}x{" "}
-                              {formatRupiah(item.price_at_purchase)}
+                            <span className="font-semibold text-lg">
+                              {formatRupiah(
+                                item.price_at_purchase * item.quantity
+                              )}
                             </span>
                           </div>
                         </div>
                       ))}
+                    </div>
+
+                    {/* Total Breakdown */}
+                    <div className="mt-4 p-3 bg-gray-100 rounded-lg">
+                      <div className="space-y-1 text-sm">
+                        <div className="flex justify-between">
+                          <span>Subtotal produk:</span>
+                          <span>
+                            {formatRupiah(
+                              order.OrderItems.reduce(
+                                (sum, item) =>
+                                  sum + item.price_at_purchase * item.quantity,
+                                0
+                              )
+                            )}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Ongkos kirim:</span>
+                          <span>{formatRupiah(15000)}</span>
+                        </div>
+                        <div className="flex justify-between font-semibold text-base border-t pt-1">
+                          <span>Total:</span>
+                          <span>{formatRupiah(order.total_amount)}</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -222,32 +336,55 @@ function Orders() {
                 )}
 
                 {/* Action Buttons */}
-                <div className="border-t pt-4 mt-4 flex gap-2">
-                  {order.order_status === "pending_payment" &&
-                    order.payment_method === "transfer" && (
-                      <Button
-                        onClick={() =>
-                          navigate("/pembayaran", {
-                            state: {
-                              order: order,
-                              payment_method: order.payment_method,
-                            },
-                          })
-                        }
-                        className="bg-[#cd0c0d] text-white px-4 py-2 rounded text-sm hover:bg-red-700"
-                      >
-                        Bayar Sekarang
-                      </Button>
-                    )}
-                  {order.order_status === "confirmed" &&
-                    order.payment_method === "cod" && (
-                      <span className="bg-green-100 text-green-800 px-3 py-1 rounded text-sm">
-                        Pesanan COD dikonfirmasi - Menunggu pengiriman
-                      </span>
-                    )}
+                <div className="border-t pt-4 mt-4 flex flex-wrap gap-2">
+                  {(order.order_status === "2" || order.order_status === 2) && (
+                    <span className="bg-green-100 text-green-800 px-3 py-1 rounded text-sm">
+                      ✅ Pesanan COD sudah dibayar - Siap dikirim
+                    </span>
+                  )}
+                  {(order.order_status === "paid" ||
+                    order.order_status === "confirmed") && (
+                    <span className="bg-green-100 text-green-800 px-3 py-1 rounded text-sm">
+                      ✅ Pesanan COD dikonfirmasi - Siap dikirim
+                    </span>
+                  )}
+                  {(order.order_status === "3" ||
+                    order.order_status === 3 ||
+                    order.order_status === "process" ||
+                    order.order_status === "processing") && (
+                    <span className="bg-purple-100 text-purple-800 px-3 py-1 rounded text-sm">
+                      📦 Pesanan sedang diproses
+                    </span>
+                  )}
+                  {(order.order_status === "4" ||
+                    order.order_status === 4 ||
+                    order.order_status === "ship" ||
+                    order.order_status === "shipped") && (
+                    <span className="bg-indigo-100 text-indigo-800 px-3 py-1 rounded text-sm">
+                      🚚 Pesanan dalam perjalanan
+                    </span>
+                  )}
+                  {(order.order_status === "5" ||
+                    order.order_status === 5 ||
+                    order.order_status === "done" ||
+                    order.order_status === "delivered") && (
+                    <span className="bg-green-100 text-green-800 px-3 py-1 rounded text-sm">
+                      ✅ Pesanan telah sampai
+                    </span>
+                  )}
+                  {(order.order_status === "1" ||
+                    order.order_status === 1 ||
+                    order.order_status === "new" ||
+                    order.order_status === "pending" ||
+                    order.order_status === null ||
+                    order.order_status === undefined) && (
+                    <span className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded text-sm">
+                      ⏳ Menunggu konfirmasi pembayaran COD
+                    </span>
+                  )}
                   {order.tracking_number && (
-                    <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded text-sm">
-                      Resi: {order.tracking_number}
+                    <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded text-sm font-mono">
+                      📋 Resi: {order.tracking_number}
                     </span>
                   )}
                 </div>

@@ -21,7 +21,7 @@ function CheckoutDetail() {
     postal_code: "",
     notes: "",
     // Data pembayaran
-    payment_method: "transfer", // transfer atau cod
+    payment_method: "cod", // hanya cod
   });
   const [cartItems, setCartItems] = useState([]);
   const [errors, setErrors] = useState({});
@@ -151,19 +151,16 @@ function CheckoutDetail() {
       });
 
       if (!response.ok) {
-        throw new Error("Gagal membuat pesanan");
+        const errorData = await response.json();
+        console.error("Server error:", errorData);
+        throw new Error(errorData.message || "Gagal membuat pesanan");
       }
 
       const result = await response.json();
-      alert("Pesanan berhasil dibuat!");
+      alert(`Pesanan berhasil dibuat! Nomor Resi: ${result.tracking_number}`);
 
-      // Redirect ke halaman konfirmasi pembayaran
-      navigate(`/pembayaran`, {
-        state: {
-          order: result,
-          payment_method: checkoutData.payment_method,
-        },
-      });
+      // Redirect langsung ke halaman Orders
+      navigate("/orders");
     } catch (error) {
       console.error("Error creating order:", error);
       alert("Gagal membuat pesanan. Silakan coba lagi.");
@@ -343,27 +340,11 @@ function CheckoutDetail() {
                   <input
                     type="radio"
                     name="payment_method"
-                    value="transfer"
-                    checked={checkoutData.payment_method === "transfer"}
-                    onChange={handleInputChange}
-                    className="mr-3"
-                  />
-                  <div>
-                    <span className="font-medium">Transfer Bank</span>
-                    <p className="text-sm text-gray-600">
-                      Bayar melalui transfer bank (BCA, BNI, Mandiri, BRI)
-                    </p>
-                  </div>
-                </label>
-
-                <label className="flex items-center">
-                  <input
-                    type="radio"
-                    name="payment_method"
                     value="cod"
                     checked={checkoutData.payment_method === "cod"}
                     onChange={handleInputChange}
                     className="mr-3"
+                    disabled
                   />
                   <div>
                     <span className="font-medium">Cash on Delivery (COD)</span>

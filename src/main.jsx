@@ -6,11 +6,10 @@ import Login from "./pages/Login.jsx";
 import Register from "./pages/Register.jsx";
 import Profile from "./pages/Profile.jsx";
 import Orders from "./pages/Orders.jsx";
-import Whistlist from "./components/Fragments/ProductLainnya.jsx";
 import Checkout from "./pages/Checkout.jsx";
 import CheckoutDetail from "./pages/CheckoutDetail.jsx";
-import Pembayaran from "./pages/Pembayaran.jsx";
 import DetailProduct from "./pages/DetailProduct.jsx";
+import PembayaranPage from "./pages/Pembayaran.jsx";
 
 // Context untuk user dan cart
 export const UserContext = createContext();
@@ -114,7 +113,7 @@ const router = createBrowserRouter([
   },
   {
     path: "/pembayaran",
-    element: <Pembayaran />,
+    element: <PembayaranPage />,
   },
   {
     path: "/detail/:id",
