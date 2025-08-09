@@ -22,8 +22,8 @@ function ProductDetailInfo({ product }) {
   // Pastikan colors dan sizes selalu array
   const colors = Array.isArray(product.colors) ? product.colors : [];
   const sizes = Array.isArray(product.sizes) ? product.sizes : [];
-  const [color, setColor] = useState(colors[0] || "");
-  const [size, setSize] = useState(sizes[0] || "");
+  const [color, setColor] = useState("");
+  const [size, setSize] = useState("");
   const [qty, setQty] = useState(1);
   const [cartLoading, setCartLoading] = useState(false);
   const [variants, setVariants] = useState([]);
@@ -89,6 +89,12 @@ function ProductDetailInfo({ product }) {
   }, [product.product_id, product.id, color, size, isLoggedIn]);
 
   const handleAddToCart = async () => {
+    if (!size || !color) {
+      window.alert(
+        "Silakan pilih ukuran dan warna yang tersedia terlebih dahulu."
+      );
+      return;
+    }
     if (!isLoggedIn) {
       navigate("/login");
       return;
@@ -117,16 +123,22 @@ function ProductDetailInfo({ product }) {
       });
       if (!res.ok) {
         const data = await res.json();
-        alert(data.message || "Gagal menambah ke keranjang");
+        window.alert(data.message || "Gagal menambah ke keranjang");
         return;
       }
       navigate("/checkout");
     } catch (err) {
-      alert("Gagal koneksi ke server");
+      window.alert("Gagal koneksi ke server");
     }
   };
 
   const handleBuyNow = () => {
+    if (!size || !color) {
+      window.alert(
+        "Silakan pilih ukuran dan warna yang tersedia terlebih dahulu."
+      );
+      return;
+    }
     if (!isLoggedIn) {
       navigate("/login");
       return;
@@ -185,9 +197,16 @@ function ProductDetailInfo({ product }) {
         <span className="font-semibold">Warna Tersedia:</span>
         {Array.from(new Set(variants.map((v) => v.color).filter(Boolean))).map(
           (clr) => (
-            <span key={clr} className="ml-2 px-2 py-1 border rounded">
+            <button
+              key={clr}
+              onClick={() => setColor(clr)}
+              className={`ml-2 px-2 py-1 border rounded ${
+                color === clr ? "bg-[#cd0c0d] text-white" : "bg-white"
+              }`}
+              type="button"
+            >
               {clr}
-            </span>
+            </button>
           )
         )}
       </div>

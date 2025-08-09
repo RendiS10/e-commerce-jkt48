@@ -24,9 +24,11 @@ function Login() {
           {/* Right Side - Form */}
           <div className="flex-1 flex flex-col justify-center px-8 py-12">
             <h2 className="text-2xl md:text-3xl font-semibold mb-2 text-[#222]">
-              Log in to Exclusive
+              Log in to Your Account
             </h2>
-            <p className="text-sm text-[#222] mb-8">Enter your details below</p>
+            <p className="text-sm text-[#222] mb-8">
+              Masukan Email dan Password Yang Dimiliki
+            </p>
             <LoginForm />
           </div>
         </div>
