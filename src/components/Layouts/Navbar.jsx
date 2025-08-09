@@ -65,7 +65,7 @@ function Navbar() {
           Cek Keranjang
         </Link>
         <Link
-          to="#"
+          to="/orders"
           className="text-[#cd0c0d] no-underline text-base relative pb-[2px] transition-colors after:content-[''] after:block after:absolute after:left-1/2 after:bottom-0 after:w-0 after:h-[2px] after:bg-[#cd0c0d] after:transition-all after:duration-500 after:ease-[cubic-bezier(0.4,0,0.2,1)] after:-translate-x-1/2 hover:after:w-full hover:after:left-1/2 hover:after:-translate-x-1/2 font-normal"
         >
           Status Pemesanan
@@ -105,15 +105,8 @@ function Navbar() {
             {dropdownOpen && (
               <div className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-lg shadow-lg z-50 animate-fade-in">
                 <Link
-                  to="/orders"
-                  className="block px-4 py-2 text-gray-700 hover:bg-[#ffeaea]"
-                  onClick={() => setDropdownOpen(false)}
-                >
-                  Pesanan
-                </Link>
-                <Link
                   to="/profile"
-                  className="block px-4 py-2 text-gray-700 hover:bg-[#ffeaea]"
+                  className="block px-4 py-2 text-gray-700 hover:bg-[#ffeaea] rounded-t-lg"
                   onClick={() => setDropdownOpen(false)}
                 >
                   Setting
