@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import Button from "../components/Elements/Button";
 import CartTable from "../components/Fragments/CartTable";
 import CartTotal from "../components/Elements/CartTotal";
@@ -7,6 +8,7 @@ import Navbar from "../components/Layouts/Navbar";
 import Footer from "../components/Layouts/Footer";
 
 function Checkout() {
+  const navigate = useNavigate();
   const [cart, setCart] = useState([]);
   const [coupon, setCoupon] = useState("");
   const [loading, setLoading] = useState(true);
@@ -137,7 +139,7 @@ function Checkout() {
           {/* Cart Total */}
           <div>
             <CartTotal subtotal={subtotal} />
-            <Button className="bg-[#cd0c0d] text-white w-full py-2 rounded mt-4">
+            <Button className="bg-[#cd0c0d] text-white w-full py-2 rounded mt-4" onClick={() => navigate("/checkout-detail")}>
               Process to checkout
             </Button>
           </div>
