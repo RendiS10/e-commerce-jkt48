@@ -5,22 +5,13 @@ import AdminLayout from "../../components/admin/AdminLayout.jsx";
 const Reviews = () => {
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showForm, setShowForm] = useState(false);
-  const [editingReview, setEditingReview] = useState(null);
-  const [products, setProducts] = useState([]);
-  const [users, setUsers] = useState([]);
-  const [formData, setFormData] = useState({
-    product_id: "",
-    user_id: "",
-    rating: "",
-    comment: "",
-  });
+  const [showReplyForm, setShowReplyForm] = useState(false);
+  const [replyingToReview, setReplyingToReview] = useState(null);
+  const [replyText, setReplyText] = useState("");
   const { user } = useContext(UserContext);
 
   useEffect(() => {
     fetchReviews();
-    fetchProducts();
-    fetchUsers();
   }, []);
 
   const fetchReviews = async () => {
@@ -37,100 +28,37 @@ const Reviews = () => {
     }
   };
 
-  const fetchProducts = async () => {
-    try {
-      const response = await fetch("http://localhost:5000/api/products");
-      if (response.ok) {
-        const data = await response.json();
-        setProducts(data);
-      }
-    } catch (error) {
-      console.error("Error fetching products:", error);
-    }
+  const handleReply = (review) => {
+    setReplyingToReview(review);
+    setReplyText(review.admin_reply || "");
+    setShowReplyForm(true);
   };
 
-  const fetchUsers = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      const response = await fetch("http://localhost:5000/api/users", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setUsers(data);
-      }
-    } catch (error) {
-      console.error("Error fetching users:", error);
-    }
-  };
-
-  const handleSubmit = async (e) => {
+  const handleSubmitReply = async (e) => {
     e.preventDefault();
     const token = localStorage.getItem("token");
 
     try {
-      const url = editingReview
-        ? `http://localhost:5000/api/reviews/${editingReview.review_id}`
-        : "http://localhost:5000/api/reviews";
-
-      const response = await fetch(url, {
-        method: editingReview ? "PUT" : "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(formData),
-      });
-
-      if (response.ok) {
-        fetchReviews();
-        setShowForm(false);
-        setEditingReview(null);
-        setFormData({
-          product_id: "",
-          user_id: "",
-          rating: "",
-          comment: "",
-        });
-      }
-    } catch (error) {
-      console.error("Error saving review:", error);
-    }
-  };
-
-  const handleEdit = (review) => {
-    setEditingReview(review);
-    setFormData({
-      product_id: review.product_id,
-      user_id: review.user_id,
-      rating: review.rating,
-      comment: review.comment,
-    });
-    setShowForm(true);
-  };
-
-  const handleDelete = async (reviewId) => {
-    if (!confirm("Are you sure you want to delete this review?")) return;
-
-    const token = localStorage.getItem("token");
-    try {
       const response = await fetch(
-        `http://localhost:5000/api/reviews/${reviewId}`,
+        `http://localhost:5000/api/reviews/reply/${replyingToReview.review_id}`,
         {
-          method: "DELETE",
+          method: "PUT",
           headers: {
+            "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
+          body: JSON.stringify({ admin_reply: replyText }),
         }
       );
 
       if (response.ok) {
         fetchReviews();
+        setShowReplyForm(false);
+        setReplyingToReview(null);
+        setReplyText("");
       }
     } catch (error) {
-      console.error("Error deleting review:", error);
+      console.error("Error saving reply:", error);
     }
   };
 
@@ -155,105 +83,42 @@ const Reviews = () => {
           <h1 className="text-3xl font-bold text-gray-900">
             Reviews Management
           </h1>
-          <button
-            onClick={() => {
-              setShowForm(true);
-              setEditingReview(null);
-              setFormData({
-                product_id: "",
-                user_id: "",
-                rating: "",
-                comment: "",
-              });
-            }}
-            className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition duration-200"
-          >
-            Add New Review
-          </button>
+          <div className="text-sm text-gray-600">
+            Manage customer reviews and provide responses
+          </div>
         </div>
 
-        {showForm && (
+        {showReplyForm && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white p-6 rounded-lg w-full max-w-md">
-              <h2 className="text-xl font-bold mb-4">
-                {editingReview ? "Edit Review" : "Add New Review"}
-              </h2>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Product
-                  </label>
-                  <select
-                    value={formData.product_id}
-                    onChange={(e) =>
-                      setFormData({ ...formData, product_id: e.target.value })
-                    }
-                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    required
-                  >
-                    <option value="">Select Product</option>
-                    {products.map((product) => (
-                      <option
-                        key={product.product_id}
-                        value={product.product_id}
-                      >
-                        {product.product_name}
-                      </option>
-                    ))}
-                  </select>
+              <h2 className="text-xl font-bold mb-4">Reply to Review</h2>
+              <div className="mb-4 p-3 bg-gray-100 rounded-lg">
+                <div className="text-sm text-gray-600 mb-1">
+                  Customer Review:
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    User
-                  </label>
-                  <select
-                    value={formData.user_id}
-                    onChange={(e) =>
-                      setFormData({ ...formData, user_id: e.target.value })
-                    }
-                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    required
-                  >
-                    <option value="">Select User</option>
-                    {users.map((user) => (
-                      <option key={user.user_id} value={user.user_id}>
-                        {user.full_name} ({user.email})
-                      </option>
-                    ))}
-                  </select>
+                <div className="font-medium">
+                  {replyingToReview?.Product?.product_name}
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Rating
-                  </label>
-                  <select
-                    value={formData.rating}
-                    onChange={(e) =>
-                      setFormData({ ...formData, rating: e.target.value })
-                    }
-                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    required
-                  >
-                    <option value="">Select Rating</option>
-                    <option value="1">1 ⭐</option>
-                    <option value="2">2 ⭐⭐</option>
-                    <option value="3">3 ⭐⭐⭐</option>
-                    <option value="4">4 ⭐⭐⭐⭐</option>
-                    <option value="5">5 ⭐⭐⭐⭐⭐</option>
-                  </select>
+                <div className="text-sm text-gray-600">
+                  {replyingToReview?.User?.full_name}
                 </div>
+                <div className="mt-1">
+                  {getStarRating(replyingToReview?.rating)}
+                </div>
+                <div className="mt-2 text-sm">{replyingToReview?.comment}</div>
+              </div>
+              <form onSubmit={handleSubmitReply} className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Comment
+                    Admin Reply
                   </label>
                   <textarea
-                    value={formData.comment}
-                    onChange={(e) =>
-                      setFormData({ ...formData, comment: e.target.value })
-                    }
+                    value={replyText}
+                    onChange={(e) => setReplyText(e.target.value)}
                     className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    rows="3"
-                    placeholder="Review comment..."
+                    rows="4"
+                    placeholder="Write your reply to the customer..."
+                    required
                   />
                 </div>
                 <div className="flex space-x-2">
@@ -261,11 +126,11 @@ const Reviews = () => {
                     type="submit"
                     className="flex-1 bg-purple-600 text-white py-2 rounded-lg hover:bg-purple-700"
                   >
-                    {editingReview ? "Update" : "Create"}
+                    Send Reply
                   </button>
                   <button
                     type="button"
-                    onClick={() => setShowForm(false)}
+                    onClick={() => setShowReplyForm(false)}
                     className="flex-1 bg-gray-300 text-gray-700 py-2 rounded-lg hover:bg-gray-400"
                   >
                     Cancel
@@ -293,6 +158,9 @@ const Reviews = () => {
                   Comment
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Admin Reply
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Date
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -315,21 +183,24 @@ const Reviews = () => {
                   <td className="px-6 py-4 text-sm text-gray-900 max-w-xs truncate">
                     {review.comment || "No comment"}
                   </td>
+                  <td className="px-6 py-4 text-sm text-gray-900 max-w-xs">
+                    {review.admin_reply ? (
+                      <div className="bg-blue-50 p-2 rounded text-xs">
+                        {review.admin_reply}
+                      </div>
+                    ) : (
+                      <span className="text-gray-400 italic">No reply yet</span>
+                    )}
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {new Date(review.review_date).toLocaleDateString()}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
                     <button
-                      onClick={() => handleEdit(review)}
-                      className="text-indigo-600 hover:text-indigo-900"
+                      onClick={() => handleReply(review)}
+                      className="text-blue-600 hover:text-blue-900"
                     >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDelete(review.review_id)}
-                      className="text-red-600 hover:text-red-900"
-                    >
-                      Delete
+                      {review.admin_reply ? "Edit Reply" : "Reply"}
                     </button>
                   </td>
                 </tr>
