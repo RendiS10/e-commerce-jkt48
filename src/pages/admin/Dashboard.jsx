@@ -8,6 +8,8 @@ const Dashboard = () => {
     totalOrders: 0,
     totalRevenue: 0,
     recentOrders: [],
+    pendingOrders: 0,
+    pendingPayments: 0,
   });
   const [loading, setLoading] = useState(true);
 
@@ -25,15 +27,20 @@ const Dashboard = () => {
       };
 
       // Fetch dashboard stats
-      const [usersRes, productsRes, ordersRes] = await Promise.all([
-        fetch("http://localhost:5000/api/users", { headers }),
-        fetch("http://localhost:5000/api/products", { headers }),
-        fetch("http://localhost:5000/api/orders", { headers }),
-      ]);
+      const [usersRes, productsRes, ordersRes, notificationsRes] =
+        await Promise.all([
+          fetch("http://localhost:5000/api/users", { headers }),
+          fetch("http://localhost:5000/api/products", { headers }),
+          fetch("http://localhost:5000/api/orders", { headers }),
+          fetch("http://localhost:5000/api/orders/notifications", { headers }),
+        ]);
 
       const users = usersRes.ok ? await usersRes.json() : [];
       const products = productsRes.ok ? await productsRes.json() : [];
       const orders = ordersRes.ok ? await ordersRes.json() : [];
+      const notifications = notificationsRes.ok
+        ? await notificationsRes.json()
+        : {};
 
       const totalRevenue = orders.reduce(
         (sum, order) => sum + parseFloat(order.total_amount || 0),
@@ -47,6 +54,8 @@ const Dashboard = () => {
         totalOrders: orders.length || 0,
         totalRevenue: totalRevenue,
         recentOrders: recentOrders,
+        pendingOrders: notifications.pendingOrders || 0,
+        pendingPayments: notifications.pendingPayments || 0,
       });
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
@@ -73,7 +82,7 @@ const Dashboard = () => {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
           <div className="bg-white p-6 rounded-lg shadow border-l-4 border-blue-500">
             <div className="flex items-center">
               <div className="flex-1">
@@ -127,6 +136,34 @@ const Dashboard = () => {
                 </p>
               </div>
               <div className="text-purple-500 text-3xl">💰</div>
+            </div>
+          </div>
+
+          <div className="bg-white p-6 rounded-lg shadow border-l-4 border-orange-500">
+            <div className="flex items-center">
+              <div className="flex-1">
+                <h2 className="text-lg font-medium text-gray-900">
+                  Pending Orders
+                </h2>
+                <p className="text-3xl font-bold text-orange-600">
+                  {stats.pendingOrders}
+                </p>
+              </div>
+              <div className="text-orange-500 text-3xl">🔔</div>
+            </div>
+          </div>
+
+          <div className="bg-white p-6 rounded-lg shadow border-l-4 border-red-500">
+            <div className="flex items-center">
+              <div className="flex-1">
+                <h2 className="text-lg font-medium text-gray-900">
+                  Pending Payments
+                </h2>
+                <p className="text-3xl font-bold text-red-600">
+                  {stats.pendingPayments}
+                </p>
+              </div>
+              <div className="text-red-500 text-3xl">💳</div>
             </div>
           </div>
         </div>

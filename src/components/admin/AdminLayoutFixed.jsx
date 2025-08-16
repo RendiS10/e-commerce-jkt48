@@ -1,7 +1,9 @@
 import React, { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { UserContext } from "../../main.jsx";
-import Sidebar from "./Sidebar.jsx";
+import SidebarWithNotifications from "./SidebarWithNotifications.jsx";
+import NotificationDropdown from "./NotificationDropdown.jsx";
+import NotificationBanner from "./NotificationBanner.jsx";
 
 const AdminLayoutFixed = ({ children }) => {
   const { user, setUser, refreshUserAndCart, loading } =
@@ -77,15 +79,17 @@ const AdminLayoutFixed = ({ children }) => {
 
   return (
     <div className="min-h-screen bg-gray-100">
+      <NotificationBanner />
       <div className="flex">
-        <Sidebar onLogout={handleLogout} />
+        <SidebarWithNotifications onLogout={handleLogout} />
         <main className="flex-1 p-8">
           <div className="mb-6">
             <div className="flex justify-between items-center">
               <h1 className="text-2xl font-bold text-gray-800">Admin Panel</h1>
               <div className="flex items-center space-x-4">
+                <NotificationDropdown />
                 <span className="text-sm text-gray-600">
-                  Welcome, {user?.name || "Admin"}
+                  Welcome, {user?.full_name || "Admin"}
                 </span>
                 <button
                   onClick={handleLogout}
