@@ -25,7 +25,9 @@ function HeroSection() {
         const sortedNews = data
           .sort((a, b) => (a.display_order || 999) - (b.display_order || 999))
           .map((news) => ({
-            img: `http://localhost:5000/${news.image_highlight}`,
+            img: news.image_highlight?.startsWith("http")
+              ? news.image_highlight
+              : `http://localhost:5000/${news.image_highlight}`,
             link: news.highlight_link,
             alt: news.alt_text || "JKT48 News",
             id: news.news_id,

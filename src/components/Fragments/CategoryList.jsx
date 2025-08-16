@@ -27,13 +27,18 @@ function CategoryList() {
   if (error)
     return <div className="text-center text-red-500 py-8">{error}</div>;
 
-  // Icon mapping (optional):
-  const iconMap = [
+  // Fallback images untuk kategori yang belum memiliki image_url
+  const fallbackImages = [
     "/images/categories/merch-tshirt.jpg",
     "/images/categories/bdts.jpg",
     "/images/categories/ptbook.jpg",
     "/images/categories/accs.jpg",
   ];
+
+  const getImageUrl = (category, index) => {
+    // Gunakan image_url dari backend jika tersedia, jika tidak gunakan fallback
+    return category.image_url || fallbackImages[index % fallbackImages.length];
+  };
 
   return (
     <>
@@ -61,9 +66,13 @@ function CategoryList() {
               }}
             >
               <img
-                src={iconMap[idx % iconMap.length]}
+                src={getImageUrl(cat, idx)}
                 alt={cat.category_name}
                 className="w-[120px] h-[80px] object-contain transition-all duration-300"
+                onError={(e) => {
+                  // Jika image_url gagal load, gunakan fallback image
+                  e.target.src = fallbackImages[idx % fallbackImages.length];
+                }}
               />
               <span className="mt-2 text-center text-sm font-semibold leading-tight transition-all duration-300">
                 {cat.category_name}

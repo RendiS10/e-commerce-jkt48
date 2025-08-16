@@ -13,6 +13,17 @@ function Orders() {
   const [error, setError] = useState("");
   const [statusFilter, setStatusFilter] = useState("Semua"); // Filter state
   const [searchQuery, setSearchQuery] = useState(""); // Search state
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [reviewableProducts, setReviewableProducts] = useState([]);
+  const [reviewData, setReviewData] = useState({});
+  const [paymentData, setPaymentData] = useState({
+    bank_name: "",
+    account_number: "",
+    account_name: "",
+    payment_date: "",
+  });
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -168,6 +179,228 @@ function Orders() {
     return result;
   };
 
+  // Handle payment modal
+  const handleOpenPaymentModal = (order) => {
+    setSelectedOrder(order);
+    setShowPaymentModal(true);
+  };
+
+  const handleClosePaymentModal = () => {
+    setShowPaymentModal(false);
+    setSelectedOrder(null);
+    setPaymentData({
+      bank_name: "",
+      account_number: "",
+      account_name: "",
+      payment_date: "",
+    });
+  };
+
+  const handleConfirmPayment = async () => {
+    try {
+      const token = localStorage.getItem("token");
+
+      // Cari payment yang sudah ada untuk order ini
+      const getPaymentResponse = await fetch(
+        `http://localhost:5000/api/payments/order/${selectedOrder.order_id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!getPaymentResponse.ok) {
+        const errorData = await getPaymentResponse.json();
+        throw new Error(errorData.message || "Payment tidak ditemukan");
+      }
+
+      const payment = await getPaymentResponse.json();
+      console.log("Payment found:", payment);
+
+      // Konfirmasi pembayaran dengan payment_id yang sudah ada
+      const confirmResponse = await fetch(
+        `http://localhost:5000/api/payments/${payment.payment_id}/confirm`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            ...paymentData,
+            payment_date: paymentData.payment_date || new Date().toISOString(),
+          }),
+        }
+      );
+
+      if (!confirmResponse.ok) {
+        const errorData = await confirmResponse.json();
+        throw new Error(errorData.message || "Gagal konfirmasi pembayaran");
+      }
+
+      const result = await confirmResponse.json();
+      alert("Pembayaran berhasil dikonfirmasi. Menunggu verifikasi admin.");
+
+      handleClosePaymentModal();
+
+      // Refresh orders
+      window.location.reload();
+    } catch (error) {
+      console.error("Error confirming payment:", error);
+      alert(error.message || "Gagal konfirmasi pembayaran");
+    }
+  };
+
+  const needsPayment = (order) => {
+    // Order dengan status "Menunggu Konfirmasi" masih perlu payment confirmation
+    return order.order_status === "Menunggu Konfirmasi";
+  };
+
+  // Konfirmasi pesanan diterima
+  const handleConfirmOrderReceived = async (orderId) => {
+    if (!window.confirm("Apakah Anda yakin pesanan sudah diterima?")) {
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `http://localhost:5000/api/orders/${orderId}/confirm-received`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(
+          errorData.message || "Gagal konfirmasi pesanan diterima"
+        );
+      }
+
+      const result = await response.json();
+      alert(
+        "Pesanan berhasil dikonfirmasi diterima dan otomatis diselesaikan!"
+      );
+
+      // Update status pesanan di state lokal langsung ke "Selesai"
+      setOrders((prevOrders) =>
+        prevOrders.map((order) =>
+          order.order_id === orderId
+            ? { ...order, order_status: "Selesai" }
+            : order
+        )
+      );
+    } catch (error) {
+      console.error("Error confirming order received:", error);
+      alert(error.message || "Gagal konfirmasi pesanan diterima");
+    }
+  };
+
+  // Buka modal review
+  const handleOpenReviewModal = async (order) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `http://localhost:5000/api/reviews/order/${order.order_id}/reviewable`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Gagal mengambil data produk");
+      }
+
+      const data = await response.json();
+      setReviewableProducts(data.products);
+      setSelectedOrder(order);
+      setShowReviewModal(true);
+
+      // Initialize review data
+      const initialReviewData = {};
+      data.products.forEach((item) => {
+        if (!item.already_reviewed) {
+          initialReviewData[item.product_id] = {
+            rating: 5,
+            comment: "",
+          };
+        }
+      });
+      setReviewData(initialReviewData);
+    } catch (error) {
+      console.error("Error fetching reviewable products:", error);
+      alert(error.message || "Gagal mengambil data produk untuk review");
+    }
+  };
+
+  // Submit review
+  const handleSubmitReviews = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const reviewPromises = [];
+
+      // Submit review untuk setiap produk yang belum direview
+      for (const [productId, review] of Object.entries(reviewData)) {
+        if (review.rating && review.rating > 0) {
+          reviewPromises.push(
+            fetch("http://localhost:5000/api/reviews/", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({
+                order_id: selectedOrder.order_id,
+                product_id: parseInt(productId),
+                rating: review.rating,
+                comment: review.comment || "",
+              }),
+            })
+          );
+        }
+      }
+
+      const responses = await Promise.all(reviewPromises);
+
+      // Check if all reviews were submitted successfully
+      for (const response of responses) {
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || "Gagal submit review");
+        }
+      }
+
+      alert("Review berhasil dikirim! Terima kasih atas feedback Anda.");
+      setShowReviewModal(false);
+      setSelectedOrder(null);
+      setReviewableProducts([]);
+      setReviewData({});
+    } catch (error) {
+      console.error("Error submitting reviews:", error);
+      alert(error.message || "Gagal mengirim review");
+    }
+  };
+
+  // Update review data
+  const handleReviewChange = (productId, field, value) => {
+    setReviewData((prev) => ({
+      ...prev,
+      [productId]: {
+        ...prev[productId],
+        [field]: value,
+      },
+    }));
+  };
+
   const getStatusBadge = (status) => {
     const statusMap = {
       // Handle null or undefined status
@@ -184,7 +417,14 @@ function Orders() {
         text: "Menunggu Konfirmasi",
         color: "bg-yellow-100 text-yellow-800",
       },
-      Diproses: { text: "Diproses", color: "bg-purple-100 text-purple-800" },
+      Disetujui: {
+        text: "Disetujui",
+        color: "bg-blue-100 text-blue-800",
+      },
+      "Akan Dikirimkan": {
+        text: "Akan Dikirimkan",
+        color: "bg-purple-100 text-purple-800",
+      },
       Dikirim: { text: "Dikirim", color: "bg-indigo-100 text-indigo-800" },
       Selesai: { text: "Selesai", color: "bg-green-100 text-green-800" },
       Dibatalkan: { text: "Dibatalkan", color: "bg-red-100 text-red-800" },
@@ -299,7 +539,8 @@ function Orders() {
                 {[
                   "Semua",
                   "Menunggu Konfirmasi",
-                  "Diproses",
+                  "Disetujui",
+                  "Akan Dikirimkan",
                   "Dikirim",
                   "Selesai",
                   "Dibatalkan",
@@ -493,7 +734,7 @@ function Orders() {
                   </div>
                   <div>
                     <p className="text-sm text-gray-600">Metode Pembayaran</p>
-                    <p className="font-medium">Cash on Delivery (COD)</p>
+                    <p className="font-medium">Transfer Bank</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-600">Nomor Resi</p>
@@ -616,11 +857,6 @@ function Orders() {
 
                 {/* Action Buttons */}
                 <div className="border-t pt-4 mt-4 flex flex-wrap gap-2">
-                  {order.order_status === "Diproses" && (
-                    <span className="bg-purple-100 text-purple-800 px-3 py-1 rounded text-sm">
-                      📦 Pesanan sedang diproses
-                    </span>
-                  )}
                   {order.order_status === "Dikirim" && (
                     <span className="bg-indigo-100 text-indigo-800 px-3 py-1 rounded text-sm">
                       🚚 Pesanan dalam perjalanan
@@ -635,13 +871,23 @@ function Orders() {
                     order.order_status === null ||
                     order.order_status === undefined) && (
                     <span className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded text-sm">
-                      ⏳ Menunggu konfirmasi admin - COD belum dikonfirmasi
+                      ⏳ Menunggu pembayaran transfer
                     </span>
                   )}
                   {order.order_status === "Dibatalkan" && (
                     <span className="bg-red-100 text-red-800 px-3 py-1 rounded text-sm">
                       ❌ Pesanan dibatalkan
                     </span>
+                  )}
+
+                  {/* Pay Now Button - only for transfer orders waiting for payment */}
+                  {needsPayment(order) && (
+                    <Button
+                      onClick={() => handleOpenPaymentModal(order)}
+                      className="bg-green-500 text-white px-4 py-2 rounded text-sm hover:bg-green-600 transition-colors"
+                    >
+                      💳 Bayar Sekarang
+                    </Button>
                   )}
 
                   {/* Cancel Button - only show if order can be cancelled */}
@@ -651,6 +897,26 @@ function Orders() {
                       className="bg-red-500 text-white px-4 py-2 rounded text-sm hover:bg-red-600 transition-colors"
                     >
                       🗑️ Batalkan Pesanan
+                    </Button>
+                  )}
+
+                  {/* Confirm Received Button - only show if order is shipped */}
+                  {order.order_status === "Dikirim" && (
+                    <Button
+                      onClick={() => handleConfirmOrderReceived(order.order_id)}
+                      className="bg-blue-500 text-white px-4 py-2 rounded text-sm hover:bg-blue-600 transition-colors"
+                    >
+                      ✅ Konfirmasi Diterima
+                    </Button>
+                  )}
+
+                  {/* Review Button - only show if order is completed */}
+                  {order.order_status === "Selesai" && (
+                    <Button
+                      onClick={() => handleOpenReviewModal(order)}
+                      className="bg-purple-500 text-white px-4 py-2 rounded text-sm hover:bg-purple-600 transition-colors"
+                    >
+                      ⭐ Beri Review
                     </Button>
                   )}
 
@@ -665,6 +931,263 @@ function Orders() {
           </div>
         )}
       </div>
+
+      {/* Payment Modal */}
+      {showPaymentModal && selectedOrder && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">
+                Konfirmasi Pembayaran Transfer
+              </h3>
+              <button
+                onClick={handleClosePaymentModal}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="mb-4 p-3 bg-gray-50 rounded">
+              <p className="text-sm text-gray-600">
+                Order ID: {selectedOrder.order_id}
+              </p>
+              <p className="text-lg font-semibold text-purple-600">
+                Total: {formatRupiah(selectedOrder.total_amount)}
+              </p>
+            </div>
+
+            <div className="mb-4 p-3 bg-blue-50 rounded text-sm">
+              <p className="font-medium text-blue-800 mb-2">
+                Informasi Transfer:
+              </p>
+              <p className="text-blue-700">Bank: BCA</p>
+              <p className="text-blue-700">No. Rekening: 1234567890</p>
+              <p className="text-blue-700">Atas Nama: JKT48 Store</p>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Nama Bank Pengirim
+                </label>
+                <input
+                  type="text"
+                  value={paymentData.bank_name}
+                  onChange={(e) =>
+                    setPaymentData({
+                      ...paymentData,
+                      bank_name: e.target.value,
+                    })
+                  }
+                  className="w-full border rounded-lg px-3 py-2 focus:ring-purple-500 focus:border-purple-500"
+                  placeholder="Contoh: BCA, Mandiri, BNI"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Nomor Rekening Pengirim
+                </label>
+                <input
+                  type="text"
+                  value={paymentData.account_number}
+                  onChange={(e) =>
+                    setPaymentData({
+                      ...paymentData,
+                      account_number: e.target.value,
+                    })
+                  }
+                  className="w-full border rounded-lg px-3 py-2 focus:ring-purple-500 focus:border-purple-500"
+                  placeholder="Nomor rekening Anda"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Nama Pemilik Rekening
+                </label>
+                <input
+                  type="text"
+                  value={paymentData.account_name}
+                  onChange={(e) =>
+                    setPaymentData({
+                      ...paymentData,
+                      account_name: e.target.value,
+                    })
+                  }
+                  className="w-full border rounded-lg px-3 py-2 focus:ring-purple-500 focus:border-purple-500"
+                  placeholder="Nama sesuai rekening"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Tanggal Transfer
+                </label>
+                <input
+                  type="datetime-local"
+                  value={paymentData.payment_date}
+                  onChange={(e) =>
+                    setPaymentData({
+                      ...paymentData,
+                      payment_date: e.target.value,
+                    })
+                  }
+                  className="w-full border rounded-lg px-3 py-2 focus:ring-purple-500 focus:border-purple-500"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-3 mt-6">
+              <Button
+                onClick={handleClosePaymentModal}
+                className="flex-1 bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition-colors"
+              >
+                Batal
+              </Button>
+              <Button
+                onClick={() => handleConfirmPayment()}
+                className="flex-1 bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 transition-colors"
+                disabled={
+                  !paymentData.bank_name ||
+                  !paymentData.account_number ||
+                  !paymentData.account_name
+                }
+              >
+                Konfirmasi Pembayaran
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Review Modal */}
+      {showReviewModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <h2 className="text-xl font-bold mb-4">Review & Rating Produk</h2>
+              <p className="text-gray-600 mb-6">
+                Berikan review dan rating untuk produk yang sudah Anda terima
+              </p>
+
+              <div className="space-y-6">
+                {reviewableProducts?.map((item) => (
+                  <div key={item.product_id} className="border rounded-lg p-4">
+                    <div className="flex items-start gap-4">
+                      <img
+                        src={
+                          item.Product?.image_url || "/placeholder-image.jpg"
+                        }
+                        alt={item.Product?.product_name}
+                        className="w-16 h-16 object-cover rounded"
+                      />
+                      <div className="flex-1">
+                        <h3 className="font-medium">
+                          {item.Product?.product_name}
+                        </h3>
+                        <p className="text-gray-500 text-sm">
+                          Qty: {item.quantity}
+                        </p>
+
+                        {item.already_reviewed ? (
+                          <div className="mt-2 text-green-600 text-sm">
+                            ✅ Sudah direview
+                          </div>
+                        ) : (
+                          <div className="mt-3 space-y-3">
+                            {/* Rating */}
+                            <div>
+                              <label className="block text-sm font-medium mb-2">
+                                Rating (1-5):
+                              </label>
+                              <div className="flex gap-1">
+                                {[1, 2, 3, 4, 5].map((star) => (
+                                  <button
+                                    key={star}
+                                    type="button"
+                                    onClick={() =>
+                                      handleReviewChange(
+                                        item.product_id,
+                                        "rating",
+                                        star
+                                      )
+                                    }
+                                    className={`text-2xl ${
+                                      star <=
+                                      (reviewData[item.product_id]?.rating || 0)
+                                        ? "text-yellow-400"
+                                        : "text-gray-300"
+                                    }`}
+                                  >
+                                    ⭐
+                                  </button>
+                                ))}
+                                <span className="ml-2 text-sm text-gray-600">
+                                  ({reviewData[item.product_id]?.rating || 0}/5)
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* Comment */}
+                            <div>
+                              <label className="block text-sm font-medium mb-2">
+                                Komentar (opsional):
+                              </label>
+                              <textarea
+                                rows={3}
+                                value={
+                                  reviewData[item.product_id]?.comment || ""
+                                }
+                                onChange={(e) =>
+                                  handleReviewChange(
+                                    item.product_id,
+                                    "comment",
+                                    e.target.value
+                                  )
+                                }
+                                placeholder="Tulis review Anda tentang produk ini..."
+                                className="w-full border rounded-lg px-3 py-2 focus:ring-purple-500 focus:border-purple-500"
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex gap-3 mt-6">
+                <Button
+                  onClick={() => {
+                    setShowReviewModal(false);
+                    setSelectedOrder(null);
+                    setReviewableProducts([]);
+                    setReviewData({});
+                  }}
+                  className="flex-1 bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition-colors"
+                >
+                  Batal
+                </Button>
+                <Button
+                  onClick={handleSubmitReviews}
+                  className="flex-1 bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 transition-colors"
+                  disabled={Object.keys(reviewData).length === 0}
+                >
+                  Kirim Review
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <Footer />
     </>
   );

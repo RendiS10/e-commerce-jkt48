@@ -21,7 +21,7 @@ function CheckoutDetail() {
     postal_code: "",
     notes: "",
     // Data pembayaran
-    payment_method: "cod", // hanya cod
+    payment_method: "transfer", // default transfer
   });
   const [cartItems, setCartItems] = useState([]);
   const [errors, setErrors] = useState({});
@@ -340,19 +340,40 @@ function CheckoutDetail() {
                   <input
                     type="radio"
                     name="payment_method"
-                    value="cod"
-                    checked={checkoutData.payment_method === "cod"}
-                    onChange={handleInputChange}
+                    value="transfer"
+                    checked={true}
+                    readOnly
                     className="mr-3"
-                    disabled
                   />
                   <div>
-                    <span className="font-medium">Cash on Delivery (COD)</span>
+                    <span className="font-medium">Transfer Bank</span>
                     <p className="text-sm text-gray-600">
-                      Bayar saat barang diterima
+                      Transfer ke rekening Bank (Verifikasi manual)
                     </p>
                   </div>
                 </label>
+              </div>
+
+              {/* Info Transfer Bank */}
+              <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <h4 className="font-medium text-blue-800 mb-2">
+                  Informasi Transfer:
+                </h4>
+                <div className="text-sm text-blue-700 space-y-1">
+                  <p>
+                    <strong>Bank:</strong> BCA
+                  </p>
+                  <p>
+                    <strong>No. Rekening:</strong> 1234567890
+                  </p>
+                  <p>
+                    <strong>Atas Nama:</strong> JKT48 Store
+                  </p>
+                  <p className="text-xs text-blue-600 mt-2">
+                    *Setelah checkout, Anda akan diminta konfirmasi pembayaran
+                    di halaman Orders
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -364,12 +385,7 @@ function CheckoutDetail() {
             {/* Cart Items */}
             <div className="space-y-4 mb-6">
               {cartItems.map((item) => {
-                const image = item.Product?.main_image
-                  ? `http://localhost:5000/${item.Product.main_image.replace(
-                      /^\/+/,
-                      ""
-                    )}`
-                  : "/no-image.png";
+                const image = item.Product?.image_url || "/no-image.png";
 
                 return (
                   <div

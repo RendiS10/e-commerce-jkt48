@@ -103,7 +103,7 @@ function Checkout() {
           ...item,
           price: item.Product?.price || 0,
           name: item.Product?.product_name || item.Product?.name || item.name,
-          image: item.Product?.main_image || item.image,
+          image: item.Product?.image_url || item.image,
           size: item.ProductVariant?.size || null,
           color: item.ProductVariant?.color || null,
         }
@@ -111,7 +111,7 @@ function Checkout() {
           ...item,
           price: 0,
           name: item.Product?.product_name || item.Product?.name || item.name,
-          image: item.Product?.main_image || item.image,
+          image: item.Product?.image_url || item.image,
           size: item.ProductVariant?.size || null,
           color: item.ProductVariant?.color || null,
         }
@@ -139,7 +139,10 @@ function Checkout() {
           {/* Cart Total */}
           <div>
             <CartTotal subtotal={subtotal} />
-            <Button className="bg-[#cd0c0d] text-white w-full py-2 rounded mt-4" onClick={() => navigate("/checkout-detail")}>
+            <Button
+              className="bg-[#cd0c0d] text-white w-full py-2 rounded mt-4"
+              onClick={() => navigate("/checkout-detail")}
+            >
               Process to checkout
             </Button>
           </div>

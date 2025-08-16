@@ -11,6 +11,22 @@ import CheckoutDetail from "./pages/CheckoutDetail.jsx";
 import DetailProduct from "./pages/DetailProduct.jsx";
 import PembayaranPage from "./pages/Pembayaran.jsx";
 
+// Admin imports
+import AdminLogin from "./pages/admin/AdminLogin.jsx";
+import Dashboard from "./pages/admin/Dashboard.jsx";
+import Products from "./pages/admin/Products.jsx";
+import Categories from "./pages/admin/Categories.jsx";
+import ProductVariants from "./pages/admin/ProductVariants.jsx";
+import ProductImages from "./pages/admin/ProductImages.jsx";
+import NewsProduct from "./pages/admin/NewsProduct.jsx";
+import AdminOrders from "./pages/admin/Orders.jsx";
+import Payments from "./pages/admin/Payments.jsx";
+import Users from "./pages/admin/Users.jsx";
+import Reviews from "./pages/admin/Reviews.jsx";
+import Complaints from "./pages/admin/Complaints.jsx";
+import Messages from "./pages/admin/Messages.jsx";
+import Transactions from "./pages/admin/Transactions.jsx";
+
 // Context untuk user dan cart
 export const UserContext = createContext();
 export const CartContext = createContext();
@@ -22,29 +38,70 @@ function AppProviders({ children }) {
 
   // Fetch user info jika ada token
   useEffect(() => {
+    console.log("UserContext: Initializing...");
     const token = localStorage.getItem("token");
+    console.log("UserContext: Token exists:", !!token);
+
     if (!token) {
+      console.log("UserContext: No token found, setting user to null");
       setUser(null);
       setCart([]);
       setLoading(false);
       return;
     }
+
     setLoading(true);
-    // Fetch user info
-    fetch("http://localhost:5000/api/auth/me", {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => setUser(data))
-      .catch(() => setUser(null));
-    // Fetch cart
-    fetch("http://localhost:5000/api/cart", {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((res) => (res.ok ? res.json() : { CartItems: [] }))
-      .then((data) => setCart(data.CartItems || []))
-      .catch(() => setCart([]))
-      .finally(() => setLoading(false));
+    console.log("UserContext: Fetching user data...");
+
+    // Fetch user info first, then cart
+    const fetchUserAndCart = async () => {
+      try {
+        // Fetch user info
+        const userResponse = await fetch("http://localhost:5000/api/auth/me", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        console.log("UserContext: Auth response status:", userResponse.status);
+
+        if (userResponse.ok) {
+          const userData = await userResponse.json();
+          console.log("UserContext: User data received:", userData);
+          setUser(userData);
+
+          // Only fetch cart if user is successfully loaded
+          try {
+            const cartResponse = await fetch("http://localhost:5000/api/cart", {
+              headers: { Authorization: `Bearer ${token}` },
+            });
+
+            if (cartResponse.ok) {
+              const cartData = await cartResponse.json();
+              setCart(cartData.CartItems || []);
+            } else {
+              setCart([]);
+            }
+          } catch (cartError) {
+            console.log("UserContext: Cart fetch error:", cartError);
+            setCart([]);
+          }
+        } else {
+          console.log("UserContext: Invalid token, clearing user");
+          setUser(null);
+          setCart([]);
+          // Optionally remove invalid token
+          localStorage.removeItem("token");
+        }
+      } catch (error) {
+        console.log("UserContext: Auth error:", error);
+        setUser(null);
+        setCart([]);
+      } finally {
+        console.log("UserContext: Loading completed");
+        setLoading(false);
+      }
+    };
+
+    fetchUserAndCart();
   }, []);
 
   // Fungsi untuk refresh user/cart setelah login/logout
@@ -118,6 +175,63 @@ const router = createBrowserRouter([
   {
     path: "/detail/:id",
     element: <DetailProduct />,
+  },
+  // Admin Routes
+  {
+    path: "/admin/login",
+    element: <AdminLogin />,
+  },
+  {
+    path: "/admin/dashboard",
+    element: <Dashboard />,
+  },
+  {
+    path: "/admin/products",
+    element: <Products />,
+  },
+  {
+    path: "/admin/categories",
+    element: <Categories />,
+  },
+  {
+    path: "/admin/product-variants",
+    element: <ProductVariants />,
+  },
+  {
+    path: "/admin/product-images",
+    element: <ProductImages />,
+  },
+  {
+    path: "/admin/news-product",
+    element: <NewsProduct />,
+  },
+  {
+    path: "/admin/orders",
+    element: <AdminOrders />,
+  },
+  {
+    path: "/admin/payments",
+    element: <Payments />,
+  },
+  {
+    path: "/admin/users",
+    element: <Users />,
+  },
+  {
+    path: "/admin/reviews",
+    element: <Reviews />,
+  },
+  {
+    path: "/admin/complaints",
+    element: <Complaints />,
+  },
+  {
+    path: "/admin/messages",
+    element: <Messages />,
+  },
+  {
+    path: "/admin/transactions",
+    element: <Transactions />,
   },
 ]);
 

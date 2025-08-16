@@ -1,0 +1,335 @@
+import React, { useState, useEffect, useContext } from "react";
+import { UserContext } from "../../main.jsx";
+import AdminLayout from "../../components/admin/AdminLayout.jsx";
+
+const ProductImages = () => {
+  const [images, setImages] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [editingImage, setEditingImage] = useState(null);
+  const [products, setProducts] = useState([]);
+  const [formData, setFormData] = useState({
+    product_id: "",
+    image_path: "",
+    alt_text: "",
+  });
+  const { user } = useContext(UserContext);
+
+  useEffect(() => {
+    fetchImages();
+    fetchProducts();
+  }, []);
+
+  const fetchImages = async () => {
+    try {
+      const response = await fetch("http://localhost:5000/api/product-images");
+      if (response.ok) {
+        const data = await response.json();
+        setImages(data);
+      }
+    } catch (error) {
+      console.error("Error fetching images:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchProducts = async () => {
+    try {
+      const response = await fetch("http://localhost:5000/api/products");
+      if (response.ok) {
+        const data = await response.json();
+        setProducts(data);
+      }
+    } catch (error) {
+      console.error("Error fetching products:", error);
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const token = localStorage.getItem("token");
+
+    try {
+      const url = editingImage
+        ? `http://localhost:5000/api/product-images/${editingImage.image_id}`
+        : "http://localhost:5000/api/product-images";
+
+      const response = await fetch(url, {
+        method: editingImage ? "PUT" : "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (response.ok) {
+        fetchImages();
+        setShowForm(false);
+        setEditingImage(null);
+        setFormData({
+          product_id: "",
+          image_path: "",
+          alt_text: "",
+        });
+      } else {
+        const errorData = await response.json();
+        alert(`Error: ${errorData.message}`);
+      }
+    } catch (error) {
+      console.error("Error saving image:", error);
+      alert("Error saving image. Please try again.");
+    }
+  };
+
+  const handleEdit = (image) => {
+    setEditingImage(image);
+    setFormData({
+      product_id: image.product_id,
+      image_path: image.image_path,
+      alt_text: image.alt_text || "",
+    });
+    setShowForm(true);
+  };
+
+  const handleDelete = async (imageId) => {
+    if (!confirm("Are you sure you want to delete this image?")) return;
+
+    const token = localStorage.getItem("token");
+    try {
+      const response = await fetch(
+        `http://localhost:5000/api/product-images/${imageId}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.ok) {
+        fetchImages();
+      }
+    } catch (error) {
+      console.error("Error deleting image:", error);
+    }
+  };
+
+  if (loading) {
+    return (
+      <AdminLayout>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-lg">Loading images...</div>
+        </div>
+      </AdminLayout>
+    );
+  }
+
+  return (
+    <AdminLayout>
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <h1 className="text-3xl font-bold text-gray-900">
+            Product Images Management
+          </h1>
+          <button
+            onClick={() => {
+              setShowForm(true);
+              setEditingImage(null);
+              setFormData({
+                product_id: "",
+                image_path: "",
+                alt_text: "",
+              });
+            }}
+            className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition duration-200"
+          >
+            Add New Image
+          </button>
+        </div>
+
+        {showForm && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-lg w-full max-w-md">
+              <h2 className="text-xl font-bold mb-4">
+                {editingImage ? "Edit Product Image" : "Add New Product Image"}
+              </h2>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Product
+                  </label>
+                  <select
+                    value={formData.product_id}
+                    onChange={(e) =>
+                      setFormData({ ...formData, product_id: e.target.value })
+                    }
+                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    required
+                  >
+                    <option value="">Select Product</option>
+                    {products.map((product) => (
+                      <option
+                        key={product.product_id}
+                        value={product.product_id}
+                      >
+                        {product.product_name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Image URL
+                  </label>
+                  <input
+                    type="url"
+                    value={formData.image_path}
+                    onChange={(e) =>
+                      setFormData({ ...formData, image_path: e.target.value })
+                    }
+                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    placeholder="https://example.com/image.jpg"
+                    required
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Enter the URL of the product image
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Alt Text
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.alt_text}
+                    onChange={(e) =>
+                      setFormData({ ...formData, alt_text: e.target.value })
+                    }
+                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    placeholder="Description of the image"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Alternative text for accessibility
+                  </p>
+                </div>
+
+                {/* Preview Image */}
+                {formData.image_path && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Preview
+                    </label>
+                    <div className="border rounded-lg p-2">
+                      <img
+                        src={formData.image_path}
+                        alt="Preview"
+                        className="w-full h-32 object-cover rounded"
+                        onError={(e) => {
+                          e.target.src =
+                            "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='100' viewBox='0 0 200 100'%3E%3Crect width='200' height='100' fill='%23f3f4f6'/%3E%3Ctext x='100' y='55' text-anchor='middle' font-size='14'%3EImage not found%3C/text%3E%3C/svg%3E";
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex space-x-2">
+                  <button
+                    type="submit"
+                    className="flex-1 bg-purple-600 text-white py-2 rounded-lg hover:bg-purple-700"
+                  >
+                    {editingImage ? "Update" : "Create"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowForm(false)}
+                    className="flex-1 bg-gray-300 text-gray-700 py-2 rounded-lg hover:bg-gray-400"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        <div className="bg-white rounded-lg shadow overflow-hidden">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Image
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Product
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Image URL
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Alt Text
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {images.map((image) => (
+                <tr key={image.image_id}>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex-shrink-0 h-16 w-16">
+                      <img
+                        className="h-16 w-16 rounded-lg object-cover"
+                        src={image.image_path}
+                        alt={image.alt_text || "Product image"}
+                        onError={(e) => {
+                          e.target.src =
+                            "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23f3f4f6'/%3E%3Ctext x='32' y='38' text-anchor='middle' font-size='20'%3E📷%3C/text%3E%3C/svg%3E";
+                        }}
+                      />
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {image.Product?.product_name || "N/A"}
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-900 max-w-xs truncate">
+                    <a
+                      href={image.image_path}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:text-blue-800 underline"
+                    >
+                      {image.image_path}
+                    </a>
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-900 max-w-xs truncate">
+                    {image.alt_text || "No alt text"}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                    <button
+                      onClick={() => handleEdit(image)}
+                      className="text-indigo-600 hover:text-indigo-900"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleDelete(image.image_id)}
+                      className="text-red-600 hover:text-red-900"
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </AdminLayout>
+  );
+};
+
+export default ProductImages;

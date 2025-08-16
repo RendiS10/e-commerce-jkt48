@@ -42,15 +42,7 @@ function ProductList({ category }) {
           {products.map((p) => (
             <ProductCard
               key={p.product_id || p.id}
-              image={
-                p.main_image &&
-                (p.main_image.startsWith("uploads/") ||
-                  p.main_image.startsWith("/uploads/"))
-                  ? `http://localhost:5000/${p.main_image.replace(/^\/+/g, "")}`
-                  : p.main_image && p.main_image.startsWith("http")
-                  ? p.main_image
-                  : "/no-image.png"
-              }
+              image={p.image_url || "/no-image.png"}
               name={p.product_name || p.name}
               price={`Rp ${Number(p.price).toLocaleString("id-ID")}`}
               oldPrice={null}

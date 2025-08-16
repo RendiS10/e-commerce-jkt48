@@ -3,7 +3,7 @@ import ProductImageGallery from "../Elements/ProductImageGallery";
 import ProductDetailInfo from "./ProductDetailInfo";
 
 function ProductDetailSection({ product }) {
-  // Ambil array gambar dari relasi ProductImages jika ada, fallback ke main_image
+  // Ambil array gambar dari relasi ProductImages jika ada, fallback ke image_url
   let images = [];
   if (
     product.ProductImages &&
@@ -17,13 +17,8 @@ function ProductDetailSection({ product }) {
         ? `http://localhost:5000/${imgObj.image_path.replace(/^\/+/, "")}`
         : imgObj.image_path
     );
-  } else if (product.main_image) {
-    images = [
-      product.main_image.startsWith("uploads/") ||
-      product.main_image.startsWith("/uploads/")
-        ? `http://localhost:5000/${product.main_image.replace(/^\/+/, "")}`
-        : product.main_image,
-    ];
+  } else if (product.image_url) {
+    images = [product.image_url];
   }
 
   return (
