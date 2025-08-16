@@ -18,6 +18,8 @@ function Orders() {
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [reviewableProducts, setReviewableProducts] = useState([]);
   const [reviewData, setReviewData] = useState({});
+  const [orderReviewStatus, setOrderReviewStatus] = useState({}); // Track review status per order
+  const [orderPaymentStatus, setOrderPaymentStatus] = useState({}); // Track payment status per order
   const [paymentData, setPaymentData] = useState({
     bank_name: "",
     account_number: "",
@@ -52,6 +54,17 @@ function Orders() {
         });
         setOrders(data);
         setFilteredOrders(data); // Initialize filtered orders
+
+        // Load review status for completed orders
+        loadReviewStatus(
+          data.filter((order) => order.order_status === "Selesai")
+        );
+
+        // Load payment status for orders needing payment
+        loadPaymentStatus(
+          data.filter((order) => order.order_status === "Menunggu Konfirmasi")
+        );
+
         setLoading(false);
       })
       .catch((error) => {
@@ -60,6 +73,76 @@ function Orders() {
         setLoading(false);
       });
   }, [navigate]);
+
+  // Load review status for completed orders
+  const loadReviewStatus = async (completedOrders) => {
+    const reviewStatusPromises = completedOrders.map(async (order) => {
+      const status = await checkOrderReviewStatus(order.order_id);
+      return { orderId: order.order_id, ...status };
+    });
+
+    try {
+      const reviewStatuses = await Promise.all(reviewStatusPromises);
+      const statusMap = {};
+      reviewStatuses.forEach((status) => {
+        statusMap[status.orderId] = status;
+      });
+      setOrderReviewStatus(statusMap);
+    } catch (error) {
+      console.error("Error loading review statuses:", error);
+    }
+  };
+
+  // Load payment status for orders needing payment
+  const loadPaymentStatus = async (pendingOrders) => {
+    const paymentStatusPromises = pendingOrders.map(async (order) => {
+      const status = await checkOrderPaymentStatus(order.order_id);
+      return { orderId: order.order_id, ...status };
+    });
+
+    try {
+      const paymentStatuses = await Promise.all(paymentStatusPromises);
+      const statusMap = {};
+      paymentStatuses.forEach((status) => {
+        statusMap[status.orderId] = status;
+      });
+      setOrderPaymentStatus(statusMap);
+    } catch (error) {
+      console.error("Error loading payment statuses:", error);
+    }
+  };
+
+  // Fungsi untuk mengecek status pembayaran order
+  const checkOrderPaymentStatus = async (orderId) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `http://localhost:5000/api/payments/order/${orderId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        return { hasPaid: false, paymentExists: false };
+      }
+
+      const payment = await response.json();
+      const hasPaid =
+        payment.bank_name && payment.account_number && payment.account_name;
+
+      return {
+        hasPaid,
+        paymentExists: true,
+        payment: payment,
+      };
+    } catch (error) {
+      console.error("Error checking payment status:", error);
+      return { hasPaid: false, paymentExists: false };
+    }
+  };
 
   // Filter function
   const applyFilters = () => {
@@ -242,10 +325,20 @@ function Orders() {
       const result = await confirmResponse.json();
       alert("Pembayaran berhasil dikonfirmasi. Menunggu verifikasi admin.");
 
+      // Update payment status for this order
+      setOrderPaymentStatus((prev) => ({
+        ...prev,
+        [selectedOrder.order_id]: {
+          hasPaid: true,
+          paymentExists: true,
+          payment: result.payment || payment,
+        },
+      }));
+
       handleClosePaymentModal();
 
-      // Refresh orders
-      window.location.reload();
+      // No need to reload page anymore
+      // window.location.reload();
     } catch (error) {
       console.error("Error confirming payment:", error);
       alert(error.message || "Gagal konfirmasi pembayaran");
@@ -254,7 +347,12 @@ function Orders() {
 
   const needsPayment = (order) => {
     // Order dengan status "Menunggu Konfirmasi" masih perlu payment confirmation
-    return order.order_status === "Menunggu Konfirmasi";
+    // Tapi cek juga apakah sudah pernah bayar
+    const paymentStatus = orderPaymentStatus[order.order_id];
+    return (
+      order.order_status === "Menunggu Konfirmasi" &&
+      (!paymentStatus || !paymentStatus.hasPaid)
+    );
   };
 
   // Konfirmasi pesanan diterima
@@ -302,6 +400,37 @@ function Orders() {
     }
   };
 
+  // Fungsi untuk mengecek apakah semua produk sudah di-review
+  const checkOrderReviewStatus = async (orderId) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `http://localhost:5000/api/reviews/order/${orderId}/reviewable`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.ok) return { allReviewed: false, hasProducts: false };
+
+      const data = await response.json();
+      const allReviewed = data.products.every((item) => item.already_reviewed);
+
+      return {
+        allReviewed,
+        hasProducts: data.products.length > 0,
+        totalProducts: data.products.length,
+        reviewedCount: data.products.filter((item) => item.already_reviewed)
+          .length,
+      };
+    } catch (error) {
+      console.error("Error checking review status:", error);
+      return { allReviewed: false, hasProducts: false };
+    }
+  };
+
   // Buka modal review
   const handleOpenReviewModal = async (order) => {
     try {
@@ -321,6 +450,17 @@ function Orders() {
       }
 
       const data = await response.json();
+
+      // Cek apakah semua produk sudah di-review
+      const allReviewed = data.products.every((item) => item.already_reviewed);
+
+      if (allReviewed) {
+        alert(
+          "Anda sudah memberikan review untuk semua produk di pesanan ini."
+        );
+        return;
+      }
+
       setReviewableProducts(data.products);
       setSelectedOrder(order);
       setShowReviewModal(true);
@@ -380,6 +520,16 @@ function Orders() {
       }
 
       alert("Review berhasil dikirim! Terima kasih atas feedback Anda.");
+
+      // Update review status for this order
+      const updatedStatus = await checkOrderReviewStatus(
+        selectedOrder.order_id
+      );
+      setOrderReviewStatus((prev) => ({
+        ...prev,
+        [selectedOrder.order_id]: updatedStatus,
+      }));
+
       setShowReviewModal(false);
       setSelectedOrder(null);
       setReviewableProducts([]);
@@ -880,15 +1030,39 @@ function Orders() {
                     </span>
                   )}
 
-                  {/* Pay Now Button - only for transfer orders waiting for payment */}
-                  {needsPayment(order) && (
-                    <Button
-                      onClick={() => handleOpenPaymentModal(order)}
-                      className="bg-green-500 text-white px-4 py-2 rounded text-sm hover:bg-green-600 transition-colors"
-                    >
-                      💳 Bayar Sekarang
-                    </Button>
-                  )}
+                  {/* Payment Button/Status - for transfer orders */}
+                  {order.order_status === "Menunggu Konfirmasi" &&
+                    (() => {
+                      const paymentStatus = orderPaymentStatus[order.order_id];
+
+                      if (!paymentStatus) {
+                        // Still loading payment status
+                        return (
+                          <span className="bg-gray-100 text-gray-600 px-3 py-1 rounded text-sm">
+                            💳 Memuat status pembayaran...
+                          </span>
+                        );
+                      }
+
+                      if (paymentStatus.hasPaid) {
+                        // Already paid, waiting for admin verification
+                        return (
+                          <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded text-sm">
+                            ✅ Anda sudah membayar, tunggu admin
+                          </span>
+                        );
+                      }
+
+                      // Can still pay
+                      return (
+                        <Button
+                          onClick={() => handleOpenPaymentModal(order)}
+                          className="bg-green-500 text-white px-4 py-2 rounded text-sm hover:bg-green-600 transition-colors"
+                        >
+                          💳 Bayar Sekarang
+                        </Button>
+                      );
+                    })()}
 
                   {/* Cancel Button - only show if order can be cancelled */}
                   {canCancelOrder(order.order_status) && (
@@ -910,15 +1084,52 @@ function Orders() {
                     </Button>
                   )}
 
-                  {/* Review Button - only show if order is completed */}
-                  {order.order_status === "Selesai" && (
-                    <Button
-                      onClick={() => handleOpenReviewModal(order)}
-                      className="bg-purple-500 text-white px-4 py-2 rounded text-sm hover:bg-purple-600 transition-colors"
-                    >
-                      ⭐ Beri Review
-                    </Button>
-                  )}
+                  {/* Review Button/Status - only show if order is completed */}
+                  {order.order_status === "Selesai" &&
+                    (() => {
+                      const reviewStatus = orderReviewStatus[order.order_id];
+
+                      if (!reviewStatus) {
+                        // Still loading review status
+                        return (
+                          <span className="bg-gray-100 text-gray-600 px-3 py-1 rounded text-sm">
+                            📝 Memuat status review...
+                          </span>
+                        );
+                      }
+
+                      if (!reviewStatus.hasProducts) {
+                        // No products to review
+                        return (
+                          <span className="bg-gray-100 text-gray-600 px-3 py-1 rounded text-sm">
+                            📝 Tidak ada produk untuk direview
+                          </span>
+                        );
+                      }
+
+                      if (reviewStatus.allReviewed) {
+                        // All products already reviewed
+                        return (
+                          <span className="bg-green-100 text-green-800 px-3 py-1 rounded text-sm">
+                            ✅ Anda sudah memberi review
+                          </span>
+                        );
+                      }
+
+                      // Some products can still be reviewed
+                      const { reviewedCount, totalProducts } = reviewStatus;
+                      return (
+                        <Button
+                          onClick={() => handleOpenReviewModal(order)}
+                          className="bg-purple-500 text-white px-4 py-2 rounded text-sm hover:bg-purple-600 transition-colors"
+                        >
+                          ⭐ Beri Review{" "}
+                          {reviewedCount > 0
+                            ? `(${totalProducts - reviewedCount} tersisa)`
+                            : ""}
+                        </Button>
+                      );
+                    })()}
 
                   {order.tracking_number && (
                     <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded text-sm font-mono">
