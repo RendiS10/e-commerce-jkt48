@@ -1,5 +1,5 @@
 import React from "react";
-import ProductCard from "../Elements/ProductCard";
+import ProductCard from "../molecules/ProductCard";
 
 function RelatedProducts({ products }) {
   return (

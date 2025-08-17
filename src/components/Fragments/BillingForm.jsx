@@ -1,5 +1,5 @@
 import React from "react";
-import Input from "../Elements/Input";
+import Input from "../atoms/Input";
 import Checkbox from "../Elements/Checkbox";
 
 function BillingForm({ form, onChange, saveInfo, onSaveInfo }) {

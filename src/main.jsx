@@ -1,15 +1,15 @@
 import React, { StrictMode, useEffect, useState, createContext } from "react";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { createRoot } from "react-dom/client";
-import Home from "./pages/Home.jsx";
-import Login from "./pages/Login.jsx";
-import Register from "./pages/Register.jsx";
-import Profile from "./pages/Profile.jsx";
-import Orders from "./pages/Orders.jsx";
-import Checkout from "./pages/Checkout.jsx";
-import CheckoutDetail from "./pages/CheckoutDetail.jsx";
-import DetailProduct from "./pages/DetailProduct.jsx";
-import PembayaranPage from "./pages/Pembayaran.jsx";
+import Home from "./pages/shop/Home.jsx";
+import Login from "./pages/auth/Login.jsx";
+import Register from "./pages/auth/Register.jsx";
+import Profile from "./pages/account/Profile.jsx";
+import Orders from "./pages/account/Orders.jsx";
+import Checkout from "./pages/checkout/Checkout.jsx";
+import CheckoutDetail from "./pages/checkout/CheckoutDetail.jsx";
+import DetailProduct from "./pages/shop/ProductDetail.jsx";
+import PembayaranPage from "./pages/checkout/Payment.jsx";
 
 // Admin imports
 import AdminLogin from "./pages/admin/AdminLogin.jsx";

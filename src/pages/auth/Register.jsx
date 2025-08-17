@@ -1,15 +1,13 @@
+import Header from "../../components/Layouts/Header";
 import React from "react";
-import LoginForm from "../components/Fragments/LoginForm";
-import Navbar from "../components/Layouts/Navbar";
-import Header from "../components/Layouts/Header";
-import Footer from "../components/Layouts/Footer";
+import RegisterForm from "../../components/Fragments/RegisterForm";
+import Footer from "../../components/Layouts/Footer";
+import Navbar from "../../components/Layouts/Navbar";
 
-function Login() {
+function Register() {
   return (
     <>
-      <header>
-        <Header />
-      </header>
+      <Header />
       <Navbar />
       <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="flex w-full max-w-5xl bg-white rounded-lg shadow-none">
@@ -24,12 +22,10 @@ function Login() {
           {/* Right Side - Form */}
           <div className="flex-1 flex flex-col justify-center px-8 py-12">
             <h2 className="text-2xl md:text-3xl font-semibold mb-2 text-[#222]">
-              Log in to Your Account
+              Create an account
             </h2>
-            <p className="text-sm text-[#222] mb-8">
-              Masukan Email dan Password Yang Dimiliki
-            </p>
-            <LoginForm />
+            <p className="text-sm text-[#222] mb-8">Enter your details below</p>
+            <RegisterForm />
           </div>
         </div>
       </div>
@@ -37,5 +33,4 @@ function Login() {
     </>
   );
 }
-
-export default Login;
+export default Register;

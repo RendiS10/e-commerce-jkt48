@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import Header from "../components/Layouts/Header";
-import Navbar from "../components/Layouts/Navbar";
-import Footer from "../components/Layouts/Footer";
-import Button from "../components/Elements/Button";
+import Header from "../../components/Layouts/Header";
+import Navbar from "../../components/Layouts/Navbar";
+import Footer from "../../components/Layouts/Footer";
+import Button from "../../components/Elements/Button";
 
 function PembayaranPage() {
   const location = useLocation();

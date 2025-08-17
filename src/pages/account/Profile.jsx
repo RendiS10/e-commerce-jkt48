@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import Header from "../components/Layouts/Header";
-import Navbar from "../components/Layouts/Navbar";
-import Footer from "../components/Layouts/Footer";
+import Header from "../../components/Layouts/Header";
+import Navbar from "../../components/Layouts/Navbar";
+import Footer from "../../components/Layouts/Footer";
 
 function Profile() {
   const [user, setUser] = useState({

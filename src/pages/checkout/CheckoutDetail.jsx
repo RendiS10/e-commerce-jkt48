@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
-import Header from "../components/Layouts/Header";
-import Navbar from "../components/Layouts/Navbar";
-import Footer from "../components/Layouts/Footer";
-import Button from "../components/Elements/Button";
-import { UserContext, CartContext } from "../main";
+import Header from "../../components/Layouts/Header";
+import Navbar from "../../components/Layouts/Navbar";
+import Footer from "../../components/Layouts/Footer";
+import Button from "../../components/Elements/Button";
+import { UserContext, CartContext } from "../../main";
 
 function CheckoutDetail() {
   const navigate = useNavigate();

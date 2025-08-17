@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import Input from "../../components/Elements/Input";
+import Input from "../atoms/Input";
 import Button from "../../components/Elements/Button";
 
 function LoginForm() {

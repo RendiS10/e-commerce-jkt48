@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import CategoryCard from "../Elements/CategoryCard";
+import CategoryCard from "../molecules/CategoryCard";
 import ProductList from "../Fragments/ProductList";
 
 function CategoryList() {

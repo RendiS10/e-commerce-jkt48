@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import ProductCard from "../Elements/ProductCard";
+import ProductCard from "../molecules/ProductCard";
 import ProductLainnya from "./ProductLainnya";
 
 function ProductList({ category }) {

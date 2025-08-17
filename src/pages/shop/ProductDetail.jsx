@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import Breadcrumb from "../components/Elements/Breadcrumb";
-import ProductDetailSection from "../components/Fragments/ProductDetailSection";
-import RelatedProducts from "../components/Fragments/RelatedProducts";
-import Header from "../components/Layouts/Header";
-import Navbar from "../components/Layouts/Navbar";
-import Footer from "../components/Layouts/Footer";
+import Breadcrumb from "../../components/Elements/Breadcrumb";
+import ProductDetailSection from "../../components/Fragments/ProductDetailSection";
+import RelatedProducts from "../../components/Fragments/RelatedProducts";
+import Header from "../../components/Layouts/Header";
+import Navbar from "../../components/Layouts/Navbar";
+import Footer from "../../components/Layouts/Footer";
 
 function DetailProduct() {
   const { id } = useParams();

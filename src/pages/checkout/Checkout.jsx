@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import Button from "../components/Elements/Button";
-import CartTable from "../components/Fragments/CartTable";
-import CartTotal from "../components/Elements/CartTotal";
-import Header from "../components/Layouts/Header";
-import Navbar from "../components/Layouts/Navbar";
-import Footer from "../components/Layouts/Footer";
+import Button from "../../components/Elements/Button";
+import CartTable from "../../components/organisms/CartTable";
+import CartTotal from "../../components/Elements/CartTotal";
+import Header from "../../components/Layouts/Header";
+import Navbar from "../../components/Layouts/Navbar";
+import Footer from "../../components/Layouts/Footer";
 
 function Checkout() {
   const navigate = useNavigate();

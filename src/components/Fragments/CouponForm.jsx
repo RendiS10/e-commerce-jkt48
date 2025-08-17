@@ -1,5 +1,5 @@
 import React from "react";
-import Input from "../Elements/Input";
+import Input from "../atoms/Input";
 import Button from "../Elements/Button";
 
 function CouponForm({ coupon, setCoupon, onApply }) {
