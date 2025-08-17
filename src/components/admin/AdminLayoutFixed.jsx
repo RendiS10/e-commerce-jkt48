@@ -6,11 +6,21 @@ import NotificationDropdown from "./NotificationDropdown.jsx";
 import NotificationBanner from "./NotificationBanner.jsx";
 
 const AdminLayoutFixed = ({ children }) => {
-  const { user, setUser, refreshUserAndCart, loading } =
-    useContext(UserContext);
+  const context = useContext(UserContext);
   const navigate = useNavigate();
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
+
+  // Safety check: if context is undefined, return loading state
+  if (!context) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-lg">Loading...</div>
+      </div>
+    );
+  }
+
+  const { user, setUser, refreshUserAndCart, loading } = context;
 
   useEffect(() => {
     console.log("AdminLayout: Auth check - Loading:", loading, "User:", user);

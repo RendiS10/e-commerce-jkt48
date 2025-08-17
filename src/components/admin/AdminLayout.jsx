@@ -4,10 +4,20 @@ import { UserContext } from "../../main.jsx";
 import Sidebar from "./Sidebar.jsx";
 
 const AdminLayout = ({ children }) => {
-  const { user, setUser, refreshUserAndCart, loading } =
-    useContext(UserContext);
+  const context = useContext(UserContext);
   const navigate = useNavigate();
   const [localLoading, setLocalLoading] = React.useState(true);
+
+  // Safety check: if context is undefined, return loading state
+  if (!context) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-lg">Loading...</div>
+      </div>
+    );
+  }
+
+  const { user, setUser, refreshUserAndCart, loading } = context;
   const [localUser, setLocalUser] = React.useState(null);
 
   // Local user check as fallback when UserContext is loading

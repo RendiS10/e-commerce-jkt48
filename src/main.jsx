@@ -12,21 +12,22 @@ import DetailProduct from "./pages/shop/ProductDetail.jsx";
 import PembayaranPage from "./pages/checkout/Payment.jsx";
 
 // Admin imports
-import AdminLogin from "./pages/admin/AdminLogin.jsx";
-import Dashboard from "./pages/admin/Dashboard.jsx";
-import Products from "./pages/admin/Products.jsx";
-import Categories from "./pages/admin/Categories.jsx";
-import ProductVariants from "./pages/admin/ProductVariants.jsx";
-import ProductImages from "./pages/admin/ProductImages.jsx";
-import NewsProduct from "./pages/admin/NewsProduct.jsx";
-import AdminOrders from "./pages/admin/Orders.jsx";
-import Payments from "./pages/admin/Payments.jsx";
-import Users from "./pages/admin/Users.jsx";
-import Reviews from "./pages/admin/Reviews.jsx";
-import Complaints from "./pages/admin/Complaints.jsx";
-import Messages from "./pages/admin/Messages.jsx";
-import Transactions from "./pages/admin/Transactions.jsx";
-import AdminChat from "./pages/admin/Chat.jsx";
+// Admin imports
+import AdminLogin from "./pages/admin/auth/AdminLogin.jsx";
+import Dashboard from "./pages/admin/dashboard/Dashboard.jsx";
+import Products from "./pages/admin/products/Products.jsx";
+import Categories from "./pages/admin/products/Categories.jsx";
+import ProductVariants from "./pages/admin/products/ProductVariants.jsx";
+import ProductImages from "./pages/admin/products/ProductImages.jsx";
+import NewsProduct from "./pages/admin/content/NewsProduct.jsx";
+import AdminOrders from "./pages/admin/sales/Orders.jsx";
+import Payments from "./pages/admin/sales/Payments.jsx";
+import Users from "./pages/admin/users/Users.jsx";
+import Reviews from "./pages/admin/users/Reviews.jsx";
+import Complaints from "./pages/admin/users/Complaints.jsx";
+import Messages from "./pages/admin/communication/Messages.jsx";
+import Transactions from "./pages/admin/sales/Transactions.jsx";
+import AdminChat from "./pages/admin/communication/Chat.jsx";
 
 // Context untuk user dan cart
 export const UserContext = createContext();

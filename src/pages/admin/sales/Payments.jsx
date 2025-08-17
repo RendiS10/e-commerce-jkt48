@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import AdminLayoutFixed from "../../components/admin/AdminLayoutFixed";
+import AdminLayoutFixed from "../../../components/admin/AdminLayoutFixed";
 
 function Payments() {
   const [payments, setPayments] = useState([]);

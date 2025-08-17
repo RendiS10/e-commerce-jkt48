@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from "react";
-import { UserContext } from "../../main.jsx";
-import AdminLayout from "../../components/admin/AdminLayout.jsx";
+import { UserContext } from "../../../main.jsx";
+import AdminLayout from "../../../components/admin/AdminLayout.jsx";
 
 const ProductImages = () => {
   const [images, setImages] = useState([]);

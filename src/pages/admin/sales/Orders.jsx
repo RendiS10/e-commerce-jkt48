@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import AdminLayoutFixed from "../../components/admin/AdminLayoutFixed.jsx";
+import AdminLayoutFixed from "../../../components/admin/AdminLayoutFixed.jsx";
 
 const Orders = () => {
   const [orders, setOrders] = useState([]);

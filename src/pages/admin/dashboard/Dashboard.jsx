@@ -1,7 +1,5 @@
-import React, { useState, useEffect, useContext } from "react";
-import { useNavigate } from "react-router-dom";
-import { UserContext } from "../../main.jsx";
-import AdminLayoutFixed from "../../components/admin/AdminLayoutFixed.jsx";
+import React, { useState, useEffect } from "react";
+import AdminLayoutFixed from "../../../components/admin/AdminLayoutFixed.jsx";
 
 const Dashboard = () => {
   const [stats, setStats] = useState({
@@ -10,13 +8,13 @@ const Dashboard = () => {
     totalOrders: 0,
     totalRevenue: 0,
     recentOrders: [],
+    pendingOrders: 0,
+    pendingPayments: 0,
   });
   const [loading, setLoading] = useState(true);
-  const { user } = useContext(UserContext);
-  const navigate = useNavigate();
 
   useEffect(() => {
-    // AdminLayoutFixed already handles auth check, so just fetch data
+    // AdminLayoutFixed sudah handle auth, jadi langsung fetch data
     fetchDashboardData();
   }, []);
 
@@ -25,34 +23,30 @@ const Dashboard = () => {
       const token = localStorage.getItem("token");
       const headers = {
         Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
       };
 
-      // Fetch users
-      const usersResponse = await fetch("http://localhost:5000/api/users", {
-        headers,
-      });
-      const users = usersResponse.ok ? await usersResponse.json() : [];
+      // Fetch dashboard stats
+      const [usersRes, productsRes, ordersRes, notificationsRes] =
+        await Promise.all([
+          fetch("http://localhost:5000/api/users", { headers }),
+          fetch("http://localhost:5000/api/products", { headers }),
+          fetch("http://localhost:5000/api/orders", { headers }),
+          fetch("http://localhost:5000/api/orders/notifications", { headers }),
+        ]);
 
-      // Fetch products
-      const productsResponse = await fetch(
-        "http://localhost:5000/api/products"
-      );
-      const products = productsResponse.ok ? await productsResponse.json() : [];
+      const users = usersRes.ok ? await usersRes.json() : [];
+      const products = productsRes.ok ? await productsRes.json() : [];
+      const orders = ordersRes.ok ? await ordersRes.json() : [];
+      const notifications = notificationsRes.ok
+        ? await notificationsRes.json()
+        : {};
 
-      // Fetch orders
-      const ordersResponse = await fetch("http://localhost:5000/api/orders", {
-        headers,
-      });
-      const orders = ordersResponse.ok ? await ordersResponse.json() : [];
-
-      // Calculate total revenue
       const totalRevenue = orders.reduce(
         (sum, order) => sum + parseFloat(order.total_amount || 0),
         0
       );
-
-      // Get recent orders (last 5)
-      const recentOrders = orders.slice(-5).reverse();
+      const recentOrders = orders.slice(0, 5);
 
       setStats({
         totalUsers: users.length || 0,
@@ -60,6 +54,8 @@ const Dashboard = () => {
         totalOrders: orders.length || 0,
         totalRevenue: totalRevenue,
         recentOrders: recentOrders,
+        pendingOrders: notifications.pendingOrders || 0,
+        pendingPayments: notifications.pendingPayments || 0,
       });
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
@@ -83,82 +79,101 @@ const Dashboard = () => {
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-          <div className="text-sm text-gray-500">
-            Welcome back, {user?.name || "Admin"}!
-          </div>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
           <div className="bg-white p-6 rounded-lg shadow border-l-4 border-blue-500">
             <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <div className="text-2xl">👥</div>
-              </div>
-              <div className="ml-4">
-                <div className="text-sm font-medium text-gray-500">
+              <div className="flex-1">
+                <h2 className="text-lg font-medium text-gray-900">
                   Total Users
-                </div>
-                <div className="text-2xl font-bold text-blue-600">
+                </h2>
+                <p className="text-3xl font-bold text-blue-600">
                   {stats.totalUsers}
-                </div>
+                </p>
               </div>
+              <div className="text-blue-500 text-3xl">👥</div>
             </div>
           </div>
 
           <div className="bg-white p-6 rounded-lg shadow border-l-4 border-green-500">
             <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <div className="text-2xl">📦</div>
-              </div>
-              <div className="ml-4">
-                <div className="text-sm font-medium text-gray-500">
+              <div className="flex-1">
+                <h2 className="text-lg font-medium text-gray-900">
                   Total Products
-                </div>
-                <div className="text-2xl font-bold text-green-600">
+                </h2>
+                <p className="text-3xl font-bold text-green-600">
                   {stats.totalProducts}
-                </div>
+                </p>
               </div>
+              <div className="text-green-500 text-3xl">📦</div>
             </div>
           </div>
 
           <div className="bg-white p-6 rounded-lg shadow border-l-4 border-yellow-500">
             <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <div className="text-2xl">🛒</div>
-              </div>
-              <div className="ml-4">
-                <div className="text-sm font-medium text-gray-500">
+              <div className="flex-1">
+                <h2 className="text-lg font-medium text-gray-900">
                   Total Orders
-                </div>
-                <div className="text-2xl font-bold text-yellow-600">
+                </h2>
+                <p className="text-3xl font-bold text-yellow-600">
                   {stats.totalOrders}
-                </div>
+                </p>
               </div>
+              <div className="text-yellow-500 text-3xl">🛒</div>
             </div>
           </div>
 
           <div className="bg-white p-6 rounded-lg shadow border-l-4 border-purple-500">
             <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <div className="text-2xl">💰</div>
-              </div>
-              <div className="ml-4">
-                <div className="text-sm font-medium text-gray-500">
+              <div className="flex-1">
+                <h2 className="text-lg font-medium text-gray-900">
                   Total Revenue
-                </div>
-                <div className="text-2xl font-bold text-purple-600">
-                  Rp {stats.totalRevenue.toLocaleString()}
-                </div>
+                </h2>
+                <p className="text-3xl font-bold text-purple-600">
+                  Rp {stats.totalRevenue.toLocaleString("id-ID")}
+                </p>
               </div>
+              <div className="text-purple-500 text-3xl">💰</div>
+            </div>
+          </div>
+
+          <div className="bg-white p-6 rounded-lg shadow border-l-4 border-orange-500">
+            <div className="flex items-center">
+              <div className="flex-1">
+                <h2 className="text-lg font-medium text-gray-900">
+                  Pending Orders
+                </h2>
+                <p className="text-3xl font-bold text-orange-600">
+                  {stats.pendingOrders}
+                </p>
+              </div>
+              <div className="text-orange-500 text-3xl">🔔</div>
+            </div>
+          </div>
+
+          <div className="bg-white p-6 rounded-lg shadow border-l-4 border-red-500">
+            <div className="flex items-center">
+              <div className="flex-1">
+                <h2 className="text-lg font-medium text-gray-900">
+                  Pending Payments
+                </h2>
+                <p className="text-3xl font-bold text-red-600">
+                  {stats.pendingPayments}
+                </p>
+              </div>
+              <div className="text-red-500 text-3xl">💳</div>
             </div>
           </div>
         </div>
 
         {/* Recent Orders */}
-        <div className="bg-white shadow rounded-lg">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h3 className="text-lg font-medium text-gray-900">Recent Orders</h3>
+        <div className="bg-white rounded-lg shadow">
+          <div className="p-6 border-b">
+            <h2 className="text-xl font-semibold text-gray-900">
+              Recent Orders
+            </h2>
           </div>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
@@ -184,32 +199,36 @@ const Dashboard = () => {
               <tbody className="bg-white divide-y divide-gray-200">
                 {stats.recentOrders.length > 0 ? (
                   stats.recentOrders.map((order) => (
-                    <tr key={order.id}>
+                    <tr key={order.order_id}>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        #{order.id}
+                        #{order.order_id}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {order.User?.name || "N/A"}
+                        {order.User?.full_name || "N/A"}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         Rp{" "}
-                        {parseFloat(order.total_amount || 0).toLocaleString()}
+                        {parseFloat(order.total_amount).toLocaleString("id-ID")}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span
                           className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                            order.status === "completed"
+                            order.order_status === "Selesai"
                               ? "bg-green-100 text-green-800"
-                              : order.status === "pending"
+                              : order.order_status === "Diproses"
                               ? "bg-yellow-100 text-yellow-800"
-                              : "bg-red-100 text-red-800"
+                              : order.order_status === "Dikirim"
+                              ? "bg-blue-100 text-blue-800"
+                              : order.order_status === "Dibatalkan"
+                              ? "bg-red-100 text-red-800"
+                              : "bg-gray-100 text-gray-800"
                           }`}
                         >
-                          {order.status}
+                          {order.order_status}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {new Date(order.created_at).toLocaleDateString()}
+                        {new Date(order.order_date).toLocaleDateString("id-ID")}
                       </td>
                     </tr>
                   ))

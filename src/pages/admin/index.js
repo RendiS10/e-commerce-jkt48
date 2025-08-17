@@ -1,17 +1,35 @@
-// Admin Pages
-export { default as AdminLogin } from "./AdminLogin";
-export { default as Dashboard } from "./Dashboard";
-export { default as DashboardFixed } from "./DashboardFixed";
-export { default as Chat } from "./Chat";
-export { default as Categories } from "./Categories";
-export { default as Products } from "./Products";
-export { default as ProductImages } from "./ProductImages";
-export { default as ProductVariants } from "./ProductVariants";
-export { default as Orders } from "./Orders";
-export { default as Users } from "./Users";
-export { default as Payments } from "./Payments";
-export { default as Transactions } from "./Transactions";
-export { default as Reviews } from "./Reviews";
-export { default as Complaints } from "./Complaints";
-export { default as Messages } from "./Messages";
-export { default as NewsProduct } from "./NewsProduct";
+// Admin Pages - Organized by Domain
+// Authentication
+export * as Auth from "./auth";
+
+// Dashboard & Analytics
+export * as Dashboard from "./dashboard";
+
+// Product Management
+export * as Products from "./products";
+
+// Sales Management
+export * as Sales from "./sales";
+
+// User Management
+export * as Users from "./users";
+
+// Content Management
+export * as Content from "./content";
+
+// Communication
+export * as Communication from "./communication";
+
+// Backward compatibility - direct exports
+export { AdminLogin } from "./auth";
+export { Dashboard as AdminDashboard, DashboardFixed } from "./dashboard";
+export {
+  Products as AdminProducts,
+  Categories,
+  ProductImages,
+  ProductVariants,
+} from "./products";
+export { Orders as AdminOrders, Payments, Transactions } from "./sales";
+export { Users as AdminUsers, Reviews, Complaints } from "./users";
+export { NewsProduct } from "./content";
+export { Chat as AdminChat, Messages } from "./communication";
