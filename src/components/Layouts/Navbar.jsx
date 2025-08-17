@@ -1,11 +1,13 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import CustomerChat from "../Fragments/CustomerChat";
 
 function Navbar() {
   const user = localStorage.getItem("user")
     ? JSON.parse(localStorage.getItem("user"))
     : null;
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
 
@@ -79,49 +81,73 @@ function Navbar() {
             Sign Up
           </Link>
         ) : (
-          <div className="relative" ref={dropdownRef}>
+          <>
+            {/* Chat Button - Only show if user is logged in */}
             <button
-              className="flex items-center gap-2 px-3 py-1 bg-[#f5f5f5] rounded-lg focus:outline-none"
-              onClick={() => setDropdownOpen((v) => !v)}
+              onClick={() => setChatOpen(!chatOpen)}
+              className="relative flex items-center justify-center w-10 h-10 bg-[#cd0c0d] text-white rounded-full hover:bg-[#a80a0b] transition-colors"
+              title="Live Chat"
             >
-              <div className="w-8 h-8 rounded-full bg-[#cd0c0d] flex items-center justify-center text-white font-bold text-lg">
-                {user.full_name
-                  ? user.full_name.charAt(0).toUpperCase()
-                  : user.email.charAt(0).toUpperCase()}
-              </div>
-              <span className="text-[#222] font-medium text-base max-w-[120px] truncate">
-                {user.full_name || user.email}
-              </span>
               <svg
-                className="w-4 h-4 ml-1"
+                className="w-5 h-5"
                 fill="none"
-                stroke="#222"
+                stroke="currentColor"
                 strokeWidth="2"
                 viewBox="0 0 24 24"
               >
-                <path d="M19 9l-7 7-7-7" />
+                <path d="M8 12h8M8 8h8M8 16h6M3 20l1.5-1.5A2 2 0 015.5 18H19a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12z" />
               </svg>
             </button>
-            {dropdownOpen && (
-              <div className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-lg shadow-lg z-50 animate-fade-in">
-                <Link
-                  to="/profile"
-                  className="block px-4 py-2 text-gray-700 hover:bg-[#ffeaea] rounded-t-lg"
-                  onClick={() => setDropdownOpen(false)}
+
+            <div className="relative" ref={dropdownRef}>
+              <button
+                className="flex items-center gap-2 px-3 py-1 bg-[#f5f5f5] rounded-lg focus:outline-none"
+                onClick={() => setDropdownOpen((v) => !v)}
+              >
+                <div className="w-8 h-8 rounded-full bg-[#cd0c0d] flex items-center justify-center text-white font-bold text-lg">
+                  {user.full_name
+                    ? user.full_name.charAt(0).toUpperCase()
+                    : user.email.charAt(0).toUpperCase()}
+                </div>
+                <span className="text-[#222] font-medium text-base max-w-[120px] truncate">
+                  {user.full_name || user.email}
+                </span>
+                <svg
+                  className="w-4 h-4 ml-1"
+                  fill="none"
+                  stroke="#222"
+                  strokeWidth="2"
+                  viewBox="0 0 24 24"
                 >
-                  Setting
-                </Link>
-                <button
-                  onClick={handleLogout}
-                  className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-[#ffeaea] rounded-b-lg"
-                >
-                  Logout
-                </button>
-              </div>
-            )}
-          </div>
+                  <path d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              {dropdownOpen && (
+                <div className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-lg shadow-lg z-50 animate-fade-in">
+                  <Link
+                    to="/profile"
+                    className="block px-4 py-2 text-gray-700 hover:bg-[#ffeaea] rounded-t-lg"
+                    onClick={() => setDropdownOpen(false)}
+                  >
+                    Setting
+                  </Link>
+                  <button
+                    onClick={handleLogout}
+                    className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-[#ffeaea] rounded-b-lg"
+                  >
+                    Logout
+                  </button>
+                </div>
+              )}
+            </div>
+          </>
         )}
       </div>
+
+      {/* Customer Chat Component */}
+      {user && chatOpen && (
+        <CustomerChat user={user} onClose={() => setChatOpen(false)} />
+      )}
     </nav>
   );
 }

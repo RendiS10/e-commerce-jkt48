@@ -1,150 +1,75 @@
 import React, { useState, useEffect, useContext } from "react";
 import { UserContext } from "../../main.jsx";
 import AdminLayout from "../../components/admin/AdminLayout.jsx";
+import { useNavigate } from "react-router-dom";
 
 const Messages = () => {
-  const [messages, setMessages] = useState([]);
+  const [chatUsers, setChatUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showForm, setShowForm] = useState(false);
-  const [editingMessage, setEditingMessage] = useState(null);
-  const [users, setUsers] = useState([]);
-  const [formData, setFormData] = useState({
-    sender_id: "",
-    receiver_id: "",
-    message_text: "",
-    is_read: false,
-  });
+  const [searchTerm, setSearchTerm] = useState("");
   const { user } = useContext(UserContext);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    fetchMessages();
-    fetchUsers();
+    fetchChatUsers();
+    // Polling untuk update real-time
+    const interval = setInterval(fetchChatUsers, 5000);
+    return () => clearInterval(interval);
   }, []);
 
-  const fetchMessages = async () => {
+  const fetchChatUsers = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch("http://localhost:5000/api/messages", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await fetch(
+        "http://localhost:5000/api/messages/chat-users",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       if (response.ok) {
         const data = await response.json();
-        setMessages(data);
+        setChatUsers(data);
       }
     } catch (error) {
-      console.error("Error fetching messages:", error);
+      console.error("Error fetching chat users:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  const fetchUsers = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      const response = await fetch("http://localhost:5000/api/users", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+  const handleChatClick = (customer) => {
+    // Navigate ke chat dengan customer ini
+    navigate(`/admin/chat?with_user=${customer.user_id}`);
+  };
+
+  const filteredUsers = chatUsers.filter(
+    (item) =>
+      item.user?.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.user?.email?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const formatTime = (dateString) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInHours = (now - date) / (1000 * 60 * 60);
+
+    if (diffInHours < 24) {
+      return date.toLocaleTimeString("id-ID", {
+        hour: "2-digit",
+        minute: "2-digit",
       });
-      if (response.ok) {
-        const data = await response.json();
-        setUsers(data);
-      }
-    } catch (error) {
-      console.error("Error fetching users:", error);
-    }
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const token = localStorage.getItem("token");
-
-    try {
-      const url = editingMessage
-        ? `http://localhost:5000/api/messages/${editingMessage.message_id}`
-        : "http://localhost:5000/api/messages";
-
-      const response = await fetch(url, {
-        method: editingMessage ? "PUT" : "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(formData),
+    } else if (diffInHours < 168) {
+      // 1 week
+      return date.toLocaleDateString("id-ID", {
+        weekday: "short",
       });
-
-      if (response.ok) {
-        fetchMessages();
-        setShowForm(false);
-        setEditingMessage(null);
-        setFormData({
-          sender_id: "",
-          receiver_id: "",
-          message_text: "",
-          is_read: false,
-        });
-      }
-    } catch (error) {
-      console.error("Error saving message:", error);
-    }
-  };
-
-  const handleEdit = (message) => {
-    setEditingMessage(message);
-    setFormData({
-      sender_id: message.sender_id,
-      receiver_id: message.receiver_id,
-      message_text: message.message_text,
-      is_read: message.is_read,
-    });
-    setShowForm(true);
-  };
-
-  const handleDelete = async (messageId) => {
-    if (!confirm("Are you sure you want to delete this message?")) return;
-
-    const token = localStorage.getItem("token");
-    try {
-      const response = await fetch(
-        `http://localhost:5000/api/messages/${messageId}`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (response.ok) {
-        fetchMessages();
-      }
-    } catch (error) {
-      console.error("Error deleting message:", error);
-    }
-  };
-
-  const markAsRead = async (messageId) => {
-    const token = localStorage.getItem("token");
-    try {
-      const response = await fetch(
-        `http://localhost:5000/api/messages/${messageId}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ is_read: true }),
-        }
-      );
-
-      if (response.ok) {
-        fetchMessages();
-      }
-    } catch (error) {
-      console.error("Error marking as read:", error);
+    } else {
+      return date.toLocaleDateString("id-ID", {
+        day: "numeric",
+        month: "short",
+      });
     }
   };
 
@@ -152,7 +77,7 @@ const Messages = () => {
     return (
       <AdminLayout>
         <div className="flex items-center justify-center h-64">
-          <div className="text-lg">Loading messages...</div>
+          <div className="text-lg">Loading chat users...</div>
         </div>
       </AdminLayout>
     );
@@ -163,226 +88,157 @@ const Messages = () => {
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <h1 className="text-3xl font-bold text-gray-900">
-            Messages Management
+            Customer Chat Messages
           </h1>
           <button
-            onClick={() => {
-              setShowForm(true);
-              setEditingMessage(null);
-              setFormData({
-                sender_id: "",
-                receiver_id: "",
-                message_text: "",
-                is_read: false,
-              });
-            }}
-            className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition duration-200"
+            onClick={() => navigate("/admin/chat")}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-200 flex items-center gap-2"
           >
-            Send New Message
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              viewBox="0 0 24 24"
+            >
+              <path d="M8 12h8M8 8h8M8 16h6M3 20l1.5-1.5A2 2 0 015.5 18H19a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12z" />
+            </svg>
+            Open Live Chat
           </button>
         </div>
 
-        {showForm && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white p-6 rounded-lg w-full max-w-md max-h-screen overflow-y-auto">
-              <h2 className="text-xl font-bold mb-4">
-                {editingMessage ? "Edit Message" : "Send New Message"}
-              </h2>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Sender
-                  </label>
-                  <select
-                    value={formData.sender_id}
-                    onChange={(e) =>
-                      setFormData({ ...formData, sender_id: e.target.value })
-                    }
-                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    required
-                  >
-                    <option value="">Select Sender</option>
-                    {users.map((user) => (
-                      <option key={user.user_id} value={user.user_id}>
-                        {user.full_name} ({user.role})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Receiver
-                  </label>
-                  <select
-                    value={formData.receiver_id}
-                    onChange={(e) =>
-                      setFormData({ ...formData, receiver_id: e.target.value })
-                    }
-                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    required
-                  >
-                    <option value="">Select Receiver</option>
-                    {users.map((user) => (
-                      <option key={user.user_id} value={user.user_id}>
-                        {user.full_name} ({user.role})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Message
-                  </label>
-                  <textarea
-                    value={formData.message_text}
-                    onChange={(e) =>
-                      setFormData({ ...formData, message_text: e.target.value })
-                    }
-                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    rows="4"
-                    required
-                    placeholder="Type your message here..."
-                  />
-                </div>
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    id="is_read"
-                    checked={formData.is_read}
-                    onChange={(e) =>
-                      setFormData({ ...formData, is_read: e.target.checked })
-                    }
-                    className="rounded border-gray-300 text-purple-600 shadow-sm focus:border-purple-300 focus:ring focus:ring-purple-200 focus:ring-opacity-50"
-                  />
-                  <label
-                    htmlFor="is_read"
-                    className="text-sm font-medium text-gray-700"
-                  >
-                    Mark as Read
-                  </label>
-                </div>
-                <div className="flex space-x-2">
-                  <button
-                    type="submit"
-                    className="flex-1 bg-purple-600 text-white py-2 rounded-lg hover:bg-purple-700"
-                  >
-                    {editingMessage ? "Update" : "Send"}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setShowForm(false)}
-                    className="flex-1 bg-gray-300 text-gray-700 py-2 rounded-lg hover:bg-gray-400"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </form>
-            </div>
+        {/* Search Bar */}
+        <div className="bg-white p-4 rounded-lg shadow">
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Search customers..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <svg
+              className="absolute left-3 top-2.5 h-5 w-5 text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              viewBox="0 0 24 24"
+            >
+              <circle cx="11" cy="11" r="8" />
+              <path d="M21 21l-4.35-4.35" />
+            </svg>
           </div>
-        )}
+        </div>
 
+        {/* Chat Users List */}
         <div className="bg-white rounded-lg shadow overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  From
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  To
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Message
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Sent Date
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {messages.map((message) => (
-                <tr
-                  key={message.message_id}
-                  className={message.is_read ? "" : "bg-blue-50"}
-                >
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    <div>
-                      <div className="font-medium">
-                        {message.Sender?.full_name || "N/A"}
-                      </div>
-                      <div className="text-gray-500">
-                        {message.Sender?.email || "N/A"}
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    <div>
-                      <div className="font-medium">
-                        {message.Receiver?.full_name || "N/A"}
-                      </div>
-                      <div className="text-gray-500">
-                        {message.Receiver?.email || "N/A"}
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-900 max-w-xs">
-                    <div className="truncate">{message.message_text}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span
-                      className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
-                        message.is_read
-                          ? "bg-green-100 text-green-800"
-                          : "bg-yellow-100 text-yellow-800"
-                      }`}
-                    >
-                      {message.is_read ? "Read" : "Unread"}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {new Date(message.sent_at).toLocaleString()}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                    {!message.is_read && (
-                      <button
-                        onClick={() => markAsRead(message.message_id)}
-                        className="text-green-600 hover:text-green-900"
-                      >
-                        Mark Read
-                      </button>
-                    )}
-                    <button
-                      onClick={() => handleEdit(message)}
-                      className="text-indigo-600 hover:text-indigo-900"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDelete(message.message_id)}
-                      className="text-red-600 hover:text-red-900"
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-
-          {messages.filter((m) => !m.is_read).length > 0 && (
-            <div className="bg-blue-50 px-6 py-3 border-t">
-              <p className="text-sm text-blue-700">
-                You have {messages.filter((m) => !m.is_read).length} unread
-                message(s)
+          {filteredUsers.length === 0 ? (
+            <div className="text-center py-12">
+              <svg
+                className="mx-auto h-12 w-12 text-gray-400"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1"
+                viewBox="0 0 24 24"
+              >
+                <path d="M8 12h8M8 8h8M8 16h6M3 20l1.5-1.5A2 2 0 015.5 18H19a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12z" />
+              </svg>
+              <h3 className="mt-2 text-sm font-medium text-gray-900">
+                No chat messages
+              </h3>
+              <p className="mt-1 text-sm text-gray-500">
+                No customers have sent messages yet.
               </p>
             </div>
+          ) : (
+            <div className="divide-y divide-gray-200">
+              {filteredUsers.map((item) => (
+                <div
+                  key={item.user?.user_id}
+                  onClick={() => handleChatClick(item.user)}
+                  className="p-4 hover:bg-gray-50 cursor-pointer transition-colors duration-150"
+                >
+                  <div className="flex items-center space-x-4">
+                    {/* Avatar */}
+                    <div className="flex-shrink-0">
+                      <div className="h-12 w-12 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold text-lg">
+                        {item.user?.full_name?.charAt(0)?.toUpperCase() ||
+                          item.user?.email?.charAt(0)?.toUpperCase() ||
+                          "U"}
+                      </div>
+                    </div>
+
+                    {/* User Info */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm font-medium text-gray-900 truncate">
+                          {item.user?.full_name ||
+                            item.user?.email ||
+                            "Unknown User"}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {item.latestMessage &&
+                            formatTime(item.latestMessage.createdAt)}
+                        </p>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm text-gray-500 truncate">
+                          {item.latestMessage?.message || "No messages yet"}
+                        </p>
+                        {item.unreadCount > 0 && (
+                          <span className="inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-500 rounded-full">
+                            {item.unreadCount}
+                          </span>
+                        )}
+                      </div>
+                      {item.user?.email && (
+                        <p className="text-xs text-gray-400">
+                          {item.user.email}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           )}
+        </div>
+
+        {/* Stats */}
+        <div className="bg-white rounded-lg shadow p-6">
+          <h3 className="text-lg font-medium text-gray-900 mb-4">
+            Chat Statistics
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="bg-blue-50 p-4 rounded-lg">
+              <div className="text-2xl font-bold text-blue-600">
+                {filteredUsers.length}
+              </div>
+              <div className="text-sm text-blue-600">Total Conversations</div>
+            </div>
+            <div className="bg-red-50 p-4 rounded-lg">
+              <div className="text-2xl font-bold text-red-600">
+                {filteredUsers.reduce(
+                  (sum, item) => sum + (item.unreadCount || 0),
+                  0
+                )}
+              </div>
+              <div className="text-sm text-red-600">Unread Messages</div>
+            </div>
+            <div className="bg-green-50 p-4 rounded-lg">
+              <div className="text-2xl font-bold text-green-600">
+                {
+                  filteredUsers.filter((item) => {
+                    if (!item.latestMessage) return false;
+                    const now = new Date();
+                    const messageDate = new Date(item.latestMessage.createdAt);
+                    return now - messageDate < 24 * 60 * 60 * 1000; // Last 24 hours
+                  }).length
+                }
+              </div>
+              <div className="text-sm text-green-600">Active Today</div>
+            </div>
+          </div>
         </div>
       </div>
     </AdminLayout>

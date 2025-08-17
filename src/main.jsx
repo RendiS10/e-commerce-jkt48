@@ -26,6 +26,7 @@ import Reviews from "./pages/admin/Reviews.jsx";
 import Complaints from "./pages/admin/Complaints.jsx";
 import Messages from "./pages/admin/Messages.jsx";
 import Transactions from "./pages/admin/Transactions.jsx";
+import AdminChat from "./pages/admin/Chat.jsx";
 
 // Context untuk user dan cart
 export const UserContext = createContext();
@@ -232,6 +233,10 @@ const router = createBrowserRouter([
   {
     path: "/admin/transactions",
     element: <Transactions />,
+  },
+  {
+    path: "/admin/chat",
+    element: <AdminChat />,
   },
 ]);
 
