@@ -232,7 +232,9 @@ const CustomerChat = ({ user, onClose }) => {
                         : "text-gray-500"
                     }`}
                   >
-                    {new Date(message.createdAt).toLocaleTimeString("id-ID", {
+                    {new Date(
+                      message.created_at || message.createdAt
+                    ).toLocaleTimeString("id-ID", {
                       hour: "2-digit",
                       minute: "2-digit",
                     })}

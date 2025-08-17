@@ -82,6 +82,8 @@ const AdminChat = () => {
 
     newSocket.on("message_sent", (messageData) => {
       console.log("Message sent successfully:", messageData);
+      // Add the sent message to messages immediately
+      setMessages((prev) => [...prev, messageData]);
     });
 
     newSocket.on("user_typing", ({ userId, userName, isTyping }) => {
@@ -366,13 +368,14 @@ const AdminChat = () => {
                               : "text-gray-500"
                           }`}
                         >
-                          {new Date(message.created_at).toLocaleTimeString(
-                            "id-ID",
-                            {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            }
-                          )}
+                          {new Date(
+                            message.created_at ||
+                              message.createdAt ||
+                              new Date()
+                          ).toLocaleTimeString("id-ID", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
                         </div>
                       </div>
                     </div>
