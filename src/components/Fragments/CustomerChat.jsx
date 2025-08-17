@@ -69,6 +69,14 @@ const CustomerChat = ({ user, onClose }) => {
       setIsAdminOnline(data.isOnline);
     });
 
+    newSocket.on("session_ended_by_admin", (data) => {
+      console.log("Session ended by admin:", data);
+      setMessages([]);
+      alert(
+        "Chat session has been ended by admin. Chat history has been cleared."
+      );
+    });
+
     setSocket(newSocket);
 
     return () => {

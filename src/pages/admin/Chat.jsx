@@ -15,6 +15,8 @@ const AdminChat = () => {
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [chatUsers, setChatUsers] = useState([]);
   const [typingUsers, setTypingUsers] = useState(new Set());
+  const [isEndingSession, setIsEndingSession] = useState(false);
+  const [showEndSessionConfirm, setShowEndSessionConfirm] = useState(false);
   const messagesEndRef = useRef(null);
 
   // Get with_user from URL params
@@ -101,6 +103,24 @@ const AdminChat = () => {
     newSocket.on("message_error", ({ error }) => {
       console.error("Message error:", error);
       alert("Failed to send message: " + error);
+    });
+
+    newSocket.on("session_ended", (data) => {
+      console.log("Session ended:", data);
+      setMessages([]);
+      setIsEndingSession(false);
+      setShowEndSessionConfirm(false);
+      alert(
+        `Chat session ended successfully. ${data.deletedMessages} messages deleted.`
+      );
+      // Refresh chat users list
+      window.location.reload();
+    });
+
+    newSocket.on("session_error", ({ error }) => {
+      console.error("Session error:", error);
+      setIsEndingSession(false);
+      alert("Failed to end session: " + error);
     });
 
     setSocket(newSocket);
@@ -190,6 +210,25 @@ const AdminChat = () => {
 
     socket.emit("send_message", messageData);
     setNewMessage("");
+  };
+
+  // Handle end chat session
+  const handleEndSession = () => {
+    if (!selectedCustomer) return;
+    setShowEndSessionConfirm(true);
+  };
+
+  const confirmEndSession = () => {
+    if (!socket || !isConnected || !selectedCustomer) return;
+
+    setIsEndingSession(true);
+    socket.emit("end_chat_session", {
+      customerId: selectedCustomer.user_id,
+    });
+  };
+
+  const cancelEndSession = () => {
+    setShowEndSessionConfirm(false);
   };
 
   // Handle typing indicator
@@ -319,15 +358,50 @@ const AdminChat = () => {
           {selectedCustomer ? (
             <>
               {/* Chat Header */}
-              <div className="p-4 border-b bg-white">
-                <h3 className="font-semibold">{selectedCustomer.full_name}</h3>
-                <div className="text-sm text-gray-500">
-                  {onlineCustomers.find(
-                    (c) => c.userId === selectedCustomer.user_id
-                  )
-                    ? "Online"
-                    : "Offline"}
+              <div className="p-4 border-b bg-white flex justify-between items-center">
+                <div>
+                  <h3 className="font-semibold">
+                    {selectedCustomer.full_name}
+                  </h3>
+                  <div className="text-sm text-gray-500">
+                    {onlineCustomers.find(
+                      (c) => c.userId === selectedCustomer.user_id
+                    )
+                      ? "Online"
+                      : "Offline"}
+                  </div>
                 </div>
+
+                {/* End Session Button */}
+                <button
+                  onClick={handleEndSession}
+                  disabled={isEndingSession}
+                  className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                >
+                  {isEndingSession ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      Mengakhiri...
+                    </>
+                  ) : (
+                    <>
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M6 18L18 6M6 6l12 12"
+                        />
+                      </svg>
+                      Akhiri Sesi
+                    </>
+                  )}
+                </button>
               </div>
 
               {/* Messages Area */}
@@ -438,6 +512,71 @@ const AdminChat = () => {
           )}
         </div>
       </div>
+
+      {/* End Session Confirmation Modal */}
+      {showEndSessionConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <div className="flex items-center mb-4">
+              <div className="bg-red-100 rounded-full p-2 mr-3">
+                <svg
+                  className="w-6 h-6 text-red-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+                  />
+                </svg>
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900">
+                Konfirmasi Akhiri Sesi Chat
+              </h3>
+            </div>
+
+            <div className="mb-6">
+              <p className="text-gray-600">
+                Apakah Anda yakin ingin mengakhiri sesi chat dengan{" "}
+                <span className="font-semibold">
+                  {selectedCustomer?.full_name}
+                </span>
+                ?
+              </p>
+              <p className="text-red-600 text-sm mt-2">
+                ⚠️ Semua riwayat chat akan dihapus dan tidak dapat dikembalikan!
+              </p>
+            </div>
+
+            <div className="flex space-x-3">
+              <button
+                onClick={cancelEndSession}
+                disabled={isEndingSession}
+                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Batal
+              </button>
+              <button
+                onClick={confirmEndSession}
+                disabled={isEndingSession}
+                className="flex-1 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {isEndingSession ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    Mengakhiri...
+                  </>
+                ) : (
+                  "Ya, Akhiri Sesi"
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </AdminLayout>
   );
 };
