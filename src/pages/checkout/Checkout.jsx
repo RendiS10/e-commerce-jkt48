@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Button from "../../components/Elements/Button";
 import CartTable from "../../components/organisms/CartTable";
@@ -6,38 +6,30 @@ import CartTotal from "../../components/Elements/CartTotal";
 import Header from "../../components/Layouts/Header";
 import Navbar from "../../components/Layouts/Navbar";
 import Footer from "../../components/Layouts/Footer";
+import LoadingSpinner from "../../components/atoms/LoadingSpinner.jsx";
+import ErrorDisplay from "../../components/atoms/ErrorDisplay.jsx";
+import { useAuthenticatedFetch } from "../../hooks/useFetch.js";
+import { API_ENDPOINTS } from "../../utils/api.js";
 
 function Checkout() {
   const navigate = useNavigate();
-  const [cart, setCart] = useState([]);
   const [coupon, setCoupon] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
 
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) {
+  // Use custom hook for authenticated data fetching
+  const {
+    data: cartData,
+    loading,
+    error,
+    refetch,
+  } = useAuthenticatedFetch(API_ENDPOINTS.CART, {
+    transform: (data) => data.CartItems || [],
+    onError: () => {
       alert("Silakan login untuk melihat keranjang.");
       window.location.href = "/login";
-      return;
-    }
-    fetch("http://localhost:5000/api/cart", {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error("Gagal mengambil data keranjang");
-        return res.json();
-      })
-      .then((data) => {
-        // data.CartItems bisa null jika cart kosong
-        setCart(data.CartItems || []);
-        setLoading(false);
-      })
-      .catch(() => {
-        setError("Gagal mengambil data keranjang");
-        setLoading(false);
-      });
-  }, []);
+    },
+  });
+
+  const cart = cartData || [];
 
   const handleQuantityChange = async (cart_item_id, value) => {
     try {
@@ -117,9 +109,27 @@ function Checkout() {
         }
   );
 
-  if (loading) return <div className="text-center py-8">Loading...</div>;
-  if (error)
-    return <div className="text-center text-red-500 py-8">{error}</div>;
+  // Loading state
+  if (loading) {
+    return (
+      <>
+        <Header />
+        <Navbar />
+        <LoadingSpinner message="Loading cart..." />
+      </>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <>
+        <Header />
+        <Navbar />
+        <ErrorDisplay error={error} onRetry={refetch} />
+      </>
+    );
+  }
 
   return (
     <>

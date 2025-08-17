@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import AdminLayout from "../../../components/admin/AdminLayout.jsx";
+import LoadingSpinner from "../../../components/atoms/LoadingSpinner.jsx";
+import ErrorDisplay from "../../../components/atoms/ErrorDisplay.jsx";
+import { useFetch, useMutation } from "../../../hooks/useFetch.js";
+import { API_ENDPOINTS } from "../../../utils/api.js";
 
 const Categories = () => {
-  const [categories, setCategories] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingCategory, setEditingCategory] = useState(null);
   const [formData, setFormData] = useState({
@@ -12,48 +14,48 @@ const Categories = () => {
     image_url: "",
   });
 
-  useEffect(() => {
-    fetchCategories();
-  }, []);
+  // Fetch data using custom hooks
+  const {
+    data: categories,
+    loading,
+    error,
+    refetch: refetchCategories,
+  } = useFetch(API_ENDPOINTS.CATEGORIES);
 
-  const fetchCategories = async () => {
-    try {
-      const response = await fetch("http://localhost:5000/api/categories");
-      if (response.ok) {
-        const data = await response.json();
-        setCategories(data);
-      }
-    } catch (error) {
-      console.error("Error fetching categories:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { mutate, loading: mutating, error: mutationError } = useMutation();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const token = localStorage.getItem("token");
 
     try {
-      const url = editingCategory
-        ? `http://localhost:5000/api/categories/${editingCategory.category_id}`
-        : "http://localhost:5000/api/categories";
+      await mutate(
+        async () => {
+          const endpoint = editingCategory
+            ? `${API_ENDPOINTS.CATEGORIES}/${editingCategory.category_id}`
+            : API_ENDPOINTS.CATEGORIES;
 
-      const response = await fetch(url, {
-        method: editingCategory ? "PUT" : "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+          const method = editingCategory ? "PUT" : "POST";
+          return await fetch(`http://localhost:5000/api${endpoint}`, {
+            method,
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+            body: JSON.stringify(formData),
+          });
         },
-        body: JSON.stringify(formData),
-      });
-
-      if (response.ok) {
-        fetchCategories();
-        setShowForm(false);
-        setEditingCategory(null);
-        setFormData({ category_name: "", slug: "", image_url: "" });
-      }
+        {
+          onSuccess: () => {
+            refetchCategories();
+            setShowForm(false);
+            setEditingCategory(null);
+            setFormData({ category_name: "", slug: "", image_url: "" });
+          },
+          successMessage: `Category ${
+            editingCategory ? "updated" : "created"
+          } successfully!`,
+        }
+      );
     } catch (error) {
       console.error("Error saving category:", error);
     }
@@ -72,32 +74,43 @@ const Categories = () => {
   const handleDelete = async (categoryId) => {
     if (!confirm("Are you sure you want to delete this category?")) return;
 
-    const token = localStorage.getItem("token");
     try {
-      const response = await fetch(
-        `http://localhost:5000/api/categories/${categoryId}`,
+      await mutate(
+        async () => {
+          return await fetch(
+            `http://localhost:5000/api/categories/${categoryId}`,
+            {
+              method: "DELETE",
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+              },
+            }
+          );
+        },
         {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          onSuccess: () => refetchCategories(),
+          successMessage: "Category deleted successfully!",
         }
       );
-
-      if (response.ok) {
-        fetchCategories();
-      }
     } catch (error) {
       console.error("Error deleting category:", error);
     }
   };
 
+  // Loading state
   if (loading) {
     return (
       <AdminLayout>
-        <div className="flex items-center justify-center h-64">
-          <div className="text-lg">Loading categories...</div>
-        </div>
+        <LoadingSpinner message="Loading categories..." />
+      </AdminLayout>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <AdminLayout>
+        <ErrorDisplay error={error} onRetry={refetchCategories} />
       </AdminLayout>
     );
   }

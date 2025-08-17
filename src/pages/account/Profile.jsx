@@ -3,6 +3,10 @@ import { useNavigate } from "react-router-dom";
 import Header from "../../components/Layouts/Header";
 import Navbar from "../../components/Layouts/Navbar";
 import Footer from "../../components/Layouts/Footer";
+import LoadingSpinner from "../../components/atoms/LoadingSpinner.jsx";
+import ErrorDisplay from "../../components/atoms/ErrorDisplay.jsx";
+import { useAuthenticatedFetch, useMutation } from "../../hooks/useFetch.js";
+import { API_ENDPOINTS, api } from "../../utils/api.js";
 
 function Profile() {
   const [user, setUser] = useState({
@@ -13,12 +17,10 @@ function Profile() {
     city: "",
     postal_code: "",
   });
-  const [loading, setLoading] = useState(true);
-  const [updating, setUpdating] = useState(false);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
   const [isEditing, setIsEditing] = useState(false);
   const navigate = useNavigate();
+
+  const { mutate, loading: updating, error: updateError } = useMutation();
 
   useEffect(() => {
     const token = localStorage.getItem("token");

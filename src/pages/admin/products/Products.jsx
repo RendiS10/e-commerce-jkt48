@@ -1,13 +1,14 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useContext } from "react";
 import { UserContext } from "../../../main.jsx";
 import AdminLayout from "../../../components/admin/AdminLayout.jsx";
+import LoadingSpinner from "../../../components/atoms/LoadingSpinner.jsx";
+import ErrorDisplay from "../../../components/atoms/ErrorDisplay.jsx";
+import { useFetch, useMutation } from "../../../hooks/useFetch.js";
+import { API_ENDPOINTS } from "../../../utils/api.js";
 
 const Products = () => {
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
-  const [categories, setCategories] = useState([]);
   const [formData, setFormData] = useState({
     product_name: "",
     description: "",
@@ -17,70 +18,62 @@ const Products = () => {
   });
   const { user } = useContext(UserContext);
 
-  useEffect(() => {
-    fetchProducts();
-    fetchCategories();
-  }, []);
+  // Fetch data using custom hooks
+  const {
+    data: products,
+    loading,
+    error,
+    refetch: refetchProducts,
+  } = useFetch(API_ENDPOINTS.PRODUCTS);
 
-  const fetchProducts = async () => {
-    try {
-      const response = await fetch("http://localhost:5000/api/products");
-      if (response.ok) {
-        const data = await response.json();
-        setProducts(data);
-      }
-    } catch (error) {
-      console.error("Error fetching products:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const {
+    data: categories,
+    loading: categoriesLoading,
+    error: categoriesError,
+  } = useFetch(API_ENDPOINTS.CATEGORIES);
 
-  const fetchCategories = async () => {
-    try {
-      const response = await fetch("http://localhost:5000/api/categories");
-      if (response.ok) {
-        const data = await response.json();
-        setCategories(data);
-      }
-    } catch (error) {
-      console.error("Error fetching categories:", error);
-    }
-  };
+  const { mutate, loading: mutating, error: mutationError } = useMutation();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const token = localStorage.getItem("token");
 
     try {
-      const url = editingProduct
-        ? `http://localhost:5000/api/products/${editingProduct.product_id}`
-        : "http://localhost:5000/api/products";
+      await mutate(
+        async () => {
+          const endpoint = editingProduct
+            ? `${API_ENDPOINTS.PRODUCTS}/${editingProduct.product_id}`
+            : API_ENDPOINTS.PRODUCTS;
 
-      // Tidak mengirim stock, akan diset otomatis ke 0 di backend
-      const { stock, ...dataToSend } = formData;
+          const method = editingProduct ? "PUT" : "POST";
+          const { stock, ...dataToSend } = formData;
 
-      const response = await fetch(url, {
-        method: editingProduct ? "PUT" : "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+          return await fetch(`http://localhost:5000/api${endpoint}`, {
+            method,
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+            body: JSON.stringify(dataToSend),
+          });
         },
-        body: JSON.stringify(dataToSend),
-      });
-
-      if (response.ok) {
-        fetchProducts();
-        setShowForm(false);
-        setEditingProduct(null);
-        setFormData({
-          product_name: "",
-          description: "",
-          price: "",
-          category_id: "",
-          image_url: "",
-        });
-      }
+        {
+          onSuccess: () => {
+            refetchProducts();
+            setShowForm(false);
+            setEditingProduct(null);
+            setFormData({
+              product_name: "",
+              description: "",
+              price: "",
+              category_id: "",
+              image_url: "",
+            });
+          },
+          successMessage: `Product ${
+            editingProduct ? "updated" : "created"
+          } successfully!`,
+        }
+      );
     } catch (error) {
       console.error("Error saving product:", error);
     }
@@ -101,32 +94,48 @@ const Products = () => {
   const handleDelete = async (productId) => {
     if (!confirm("Are you sure you want to delete this product?")) return;
 
-    const token = localStorage.getItem("token");
     try {
-      const response = await fetch(
-        `http://localhost:5000/api/products/${productId}`,
+      await mutate(
+        async () => {
+          return await fetch(
+            `http://localhost:5000/api/products/${productId}`,
+            {
+              method: "DELETE",
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+              },
+            }
+          );
+        },
         {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          onSuccess: () => refetchProducts(),
+          successMessage: "Product deleted successfully!",
         }
       );
-
-      if (response.ok) {
-        fetchProducts();
-      }
     } catch (error) {
       console.error("Error deleting product:", error);
     }
   };
 
-  if (loading) {
+  // Loading state
+  if (loading || categoriesLoading) {
     return (
       <AdminLayout>
-        <div className="flex items-center justify-center h-64">
-          <div className="text-lg">Loading products...</div>
-        </div>
+        <LoadingSpinner message="Loading products..." />
+      </AdminLayout>
+    );
+  }
+
+  // Error state
+  if (error || categoriesError) {
+    return (
+      <AdminLayout>
+        <ErrorDisplay
+          error={error || categoriesError}
+          onRetry={() => {
+            refetchProducts();
+          }}
+        />
       </AdminLayout>
     );
   }

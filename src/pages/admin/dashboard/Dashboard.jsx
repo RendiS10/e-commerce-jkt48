@@ -1,81 +1,73 @@
-import React, { useState, useEffect } from "react";
-import AdminLayoutFixed from "../../../components/admin/AdminLayoutFixed.jsx";
+import React from "react";
+import AdminLayoutSimplified from "../../../components/admin/AdminLayoutSimplified.jsx";
+import LoadingSpinner from "../../../components/atoms/LoadingSpinner.jsx";
+import ErrorDisplay from "../../../components/atoms/ErrorDisplay.jsx";
+import { useFetch } from "../../../hooks/useFetch.js";
+import { API_ENDPOINTS } from "../../../utils/api.js";
 
 const Dashboard = () => {
-  const [stats, setStats] = useState({
-    totalUsers: 0,
-    totalProducts: 0,
-    totalOrders: 0,
-    totalRevenue: 0,
-    recentOrders: [],
-    pendingOrders: 0,
-    pendingPayments: 0,
-  });
-  const [loading, setLoading] = useState(true);
+  // Use multiple fetch hooks for different data
+  const {
+    data: users,
+    loading: usersLoading,
+    error: usersError,
+  } = useFetch(API_ENDPOINTS.USERS, { requireAuth: true });
 
-  useEffect(() => {
-    // AdminLayoutFixed sudah handle auth, jadi langsung fetch data
-    fetchDashboardData();
-  }, []);
+  const {
+    data: products,
+    loading: productsLoading,
+    error: productsError,
+  } = useFetch(API_ENDPOINTS.PRODUCTS);
 
-  const fetchDashboardData = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      const headers = {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      };
+  const {
+    data: orders,
+    loading: ordersLoading,
+    error: ordersError,
+  } = useFetch(API_ENDPOINTS.ORDERS, { requireAuth: true });
 
-      // Fetch dashboard stats
-      const [usersRes, productsRes, ordersRes, notificationsRes] =
-        await Promise.all([
-          fetch("http://localhost:5000/api/users", { headers }),
-          fetch("http://localhost:5000/api/products", { headers }),
-          fetch("http://localhost:5000/api/orders", { headers }),
-          fetch("http://localhost:5000/api/orders/notifications", { headers }),
-        ]);
+  const {
+    data: notifications,
+    loading: notificationsLoading,
+    error: notificationsError,
+  } = useFetch(API_ENDPOINTS.ORDERS_NOTIFICATIONS, { requireAuth: true });
 
-      const users = usersRes.ok ? await usersRes.json() : [];
-      const products = productsRes.ok ? await productsRes.json() : [];
-      const orders = ordersRes.ok ? await ordersRes.json() : [];
-      const notifications = notificationsRes.ok
-        ? await notificationsRes.json()
-        : {};
-
-      const totalRevenue = orders.reduce(
-        (sum, order) => sum + parseFloat(order.total_amount || 0),
-        0
-      );
-      const recentOrders = orders.slice(0, 5);
-
-      setStats({
-        totalUsers: users.length || 0,
-        totalProducts: products.length || 0,
-        totalOrders: orders.length || 0,
-        totalRevenue: totalRevenue,
-        recentOrders: recentOrders,
-        pendingOrders: notifications.pendingOrders || 0,
-        pendingPayments: notifications.pendingPayments || 0,
-      });
-    } catch (error) {
-      console.error("Error fetching dashboard data:", error);
-    } finally {
-      setLoading(false);
-    }
+  // Calculate stats from fetched data
+  const stats = {
+    totalUsers: users?.length || 0,
+    totalProducts: products?.length || 0,
+    totalOrders: orders?.length || 0,
+    totalRevenue:
+      orders?.reduce((sum, order) => sum + (order.total_amount || 0), 0) || 0,
+    recentOrders: orders?.slice(0, 5) || [],
+    pendingOrders: notifications?.pendingOrders || 0,
+    pendingPayments: notifications?.pendingPayments || 0,
   };
 
+  const loading =
+    usersLoading || productsLoading || ordersLoading || notificationsLoading;
+  const error =
+    usersError || productsError || ordersError || notificationsError;
+
+  // Loading state
   if (loading) {
     return (
-      <AdminLayoutFixed>
-        <div className="flex items-center justify-center h-64">
-          <div className="text-lg">Loading dashboard...</div>
-        </div>
-      </AdminLayoutFixed>
+      <AdminLayoutSimplified>
+        <LoadingSpinner message="Loading dashboard..." />
+      </AdminLayoutSimplified>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <AdminLayoutSimplified>
+        <ErrorDisplay error={error} />
+      </AdminLayoutSimplified>
     );
   }
 
   return (
-    <AdminLayoutFixed>
+    <AdminLayoutSimplified>
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
@@ -247,7 +239,7 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
-    </AdminLayoutFixed>
+    </AdminLayoutSimplified>
   );
 };
 

@@ -1,33 +1,16 @@
-import React, { useState, useEffect } from "react";
-import CategoryCard from "../molecules/CategoryCard";
+import React, { useState } from "react";
+import CategoryCardNew from "../molecules/CategoryCardNew";
 import ProductList from "../Fragments/ProductList";
+import LoadingSpinner from "../atoms/LoadingSpinner";
+import ErrorDisplay from "../atoms/ErrorDisplay";
+import { useFetch } from "../../hooks/useFetch";
+import { API_ENDPOINTS } from "../../utils/api";
 
 function CategoryList() {
-  const [categories, setCategories] = useState([]);
   const [active, setActive] = useState(0);
   const [selectedCategory, setSelectedCategory] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
 
-  useEffect(() => {
-    fetch("http://localhost:5000/api/categories")
-      .then((res) => res.json())
-      .then((data) => {
-        setCategories(data);
-        setSelectedCategory(data[0]?.category_name || "");
-        setLoading(false);
-      })
-      .catch(() => {
-        setError("Gagal memuat kategori");
-        setLoading(false);
-      });
-  }, []);
-
-  if (loading) return <div className="text-center py-8">Loading...</div>;
-  if (error)
-    return <div className="text-center text-red-500 py-8">{error}</div>;
-
-  // Fallback images untuk kategori yang belum memiliki image_url
+  // Fallback images untuk kategori
   const fallbackImages = [
     "/images/categories/merch-tshirt.jpg",
     "/images/categories/bdts.jpg",
@@ -35,10 +18,52 @@ function CategoryList() {
     "/images/categories/accs.jpg",
   ];
 
-  const getImageUrl = (category, index) => {
-    // Gunakan image_url dari backend jika tersedia, jika tidak gunakan fallback
-    return category.image_url || fallbackImages[index % fallbackImages.length];
+  // Use custom hook for data fetching
+  const {
+    data: categories,
+    loading,
+    error,
+    refetch,
+  } = useFetch(API_ENDPOINTS.CATEGORIES, {
+    transform: (data) => {
+      // Set first category as selected when data loads
+      if (data && data.length > 0 && !selectedCategory) {
+        setSelectedCategory(data[0].category_name);
+      }
+      return data;
+    },
+  });
+
+  // Handle category selection
+  const handleCategoryClick = (category, index) => {
+    setActive(index);
+    setSelectedCategory(category.category_name);
   };
+
+  // Loading state
+  if (loading) {
+    return <LoadingSpinner message="Memuat kategori..." />;
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <ErrorDisplay
+        error={error}
+        onRetry={refetch}
+        retryText="Muat Ulang Kategori"
+      />
+    );
+  }
+
+  // No categories found
+  if (!categories || categories.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <div className="text-gray-500 text-lg">Tidak ada kategori tersedia</div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -50,34 +75,14 @@ function CategoryList() {
         </div>
         <div className="flex flex-wrap gap-6 items-start justify-center">
           {categories.map((cat, idx) => (
-            <div
+            <CategoryCardNew
               key={cat.category_id}
-              className={`w-[220px] h-[200px] flex flex-col items-center justify-center border border-gray-200 rounded-lg bg-white shadow-sm transition-all duration-300 cursor-pointer group${
-                active === idx ? " ring-2 ring-[#cd0c0d]" : ""
-              }`}
-              style={{ boxShadow: undefined }}
-              onMouseEnter={(e) =>
-                (e.currentTarget.style.boxShadow = "0 4px 24px 0 #ffeaea")
-              }
-              onMouseLeave={(e) => (e.currentTarget.style.boxShadow = "")}
-              onClick={() => {
-                setActive(idx);
-                setSelectedCategory(cat.category_name);
-              }}
-            >
-              <img
-                src={getImageUrl(cat, idx)}
-                alt={cat.category_name}
-                className="w-[120px] h-[80px] object-contain transition-all duration-300"
-                onError={(e) => {
-                  // Jika image_url gagal load, gunakan fallback image
-                  e.target.src = fallbackImages[idx % fallbackImages.length];
-                }}
-              />
-              <span className="mt-2 text-center text-sm font-semibold leading-tight transition-all duration-300">
-                {cat.category_name}
-              </span>
-            </div>
+              category={cat}
+              index={idx}
+              isActive={active === idx}
+              onClick={handleCategoryClick}
+              fallbackImages={fallbackImages}
+            />
           ))}
         </div>
       </section>

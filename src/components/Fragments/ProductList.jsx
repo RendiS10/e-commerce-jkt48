@@ -1,33 +1,42 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import ProductCard from "../molecules/ProductCard";
 import ProductLainnya from "./ProductLainnya";
+import LoadingSpinner from "../atoms/LoadingSpinner";
+import ErrorDisplay from "../atoms/ErrorDisplay";
+import { useFetch } from "../../hooks/useFetch";
+import { API_ENDPOINTS } from "../../utils/api";
 
 function ProductList({ category }) {
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  // Build endpoint with category filter
+  const endpoint = category
+    ? `${API_ENDPOINTS.PRODUCTS}?category=${encodeURIComponent(category)}`
+    : API_ENDPOINTS.PRODUCTS;
 
-  useEffect(() => {
-    setLoading(true);
-    let url = "http://localhost:5000/api/products";
-    if (category) {
-      url += `?category=${encodeURIComponent(category)}`;
-    }
-    fetch(url)
-      .then((res) => res.json())
-      .then((data) => {
-        setProducts(data);
-        setLoading(false);
-      })
-      .catch(() => {
-        setError("Gagal memuat produk");
-        setLoading(false);
-      });
-  }, [category]);
+  // Use custom hook for data fetching
+  const {
+    data: products,
+    loading,
+    error,
+    refetch,
+  } = useFetch(endpoint, {
+    dependencies: [category], // Refetch when category changes
+  });
 
-  if (loading) return <div className="text-center py-8">Loading...</div>;
-  if (error)
-    return <div className="text-center text-red-500 py-8">{error}</div>;
+  // Loading state
+  if (loading) {
+    return <LoadingSpinner message="Memuat produk..." />;
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <ErrorDisplay
+        error={error}
+        onRetry={refetch}
+        retryText="Muat Ulang Produk"
+      />
+    );
+  }
 
   return (
     <>

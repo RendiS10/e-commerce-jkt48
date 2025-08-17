@@ -1,71 +1,98 @@
-import React, { useState } from "react";
+import React from "react";
 import { Link } from "react-router-dom";
 import Input from "../atoms/Input";
 import Button from "../../components/Elements/Button";
+import { useForm } from "../../hooks/useForm.js";
+import { api, API_ENDPOINTS } from "../../utils/api.js";
 
 function RegisterForm() {
-  const [form, setForm] = useState({ name: "", email: "", password: "" });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
-
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+  const validationRules = {
+    name: {
+      required: true,
+      minLength: 2,
+      message: "Name must be at least 2 characters",
+    },
+    email: {
+      required: true,
+      pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+      message: "Please enter a valid email",
+    },
+    password: {
+      required: true,
+      minLength: 6,
+      message: "Password must be at least 6 characters",
+    },
   };
 
-  const handleSubmit = async (e) => {
+  const {
+    formData,
+    errors,
+    loading,
+    error,
+    handleChange,
+    handleBlur,
+    handleSubmit,
+  } = useForm({ name: "", email: "", password: "" }, validationRules);
+
+  const onSubmit = (e) => {
     e.preventDefault();
-    setLoading(true);
-    setError("");
-    setSuccess("");
-    try {
-      const res = await fetch("http://localhost:5000/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          full_name: form.name,
-          email: form.email,
-          password: form.password,
+
+    handleSubmit(
+      async (data) => {
+        return await api.post(API_ENDPOINTS.AUTH_REGISTER || "/auth/register", {
+          full_name: data.name,
+          email: data.email,
+          password: data.password,
           role: "customer",
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Register failed");
-      setSuccess("Register success! Please login.");
-      setForm({ name: "", email: "", password: "" });
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
+        });
+      },
+      {
+        successMessage: "Register success! Please login.",
+        onSuccess: () => {
+          console.log("Registration successful");
+        },
+      }
+    );
   };
 
   return (
-    <form onSubmit={handleSubmit} className="w-full max-w-sm">
+    <form onSubmit={onSubmit} className="w-full max-w-sm">
       <Input
         type="text"
         name="name"
         placeholder="Name"
-        value={form.name}
+        value={formData.name}
         onChange={handleChange}
+        onBlur={handleBlur}
         required
       />
+      {errors.name && <div className="text-red-500 text-sm">{errors.name}</div>}
+
       <Input
         type="text"
         name="email"
         placeholder="Email or Phone Number"
-        value={form.email}
+        value={formData.email}
         onChange={handleChange}
+        onBlur={handleBlur}
         required
       />
+      {errors.email && (
+        <div className="text-red-500 text-sm">{errors.email}</div>
+      )}
+
       <Input
         type="password"
         name="password"
         placeholder="Password"
-        value={form.password}
+        value={formData.password}
         onChange={handleChange}
+        onBlur={handleBlur}
         required
       />
+      {errors.password && (
+        <div className="text-red-500 text-sm">{errors.password}</div>
+      )}
       {error && <div className="text-red-500 text-sm mb-2">{error}</div>}
       {success && <div className="text-green-600 text-sm mb-2">{success}</div>}
       <Button type="submit" className="w-full mt-2 mb-3" disabled={loading}>
