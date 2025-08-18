@@ -3,9 +3,11 @@ import { useParams } from "react-router-dom";
 import Breadcrumb from "../../components/Elements/Breadcrumb";
 import ProductDetailSection from "../../components/Fragments/ProductDetailSection";
 import RelatedProducts from "../../components/Fragments/RelatedProducts";
+import ReviewList from "../../components/Fragments/ReviewList";
 import Header from "../../components/Layouts/Header";
 import Navbar from "../../components/Layouts/Navbar";
 import Footer from "../../components/Layouts/Footer";
+import { useProductReviews } from "../../hooks/useProductReviews";
 
 function DetailProduct() {
   const { id } = useParams();
@@ -15,6 +17,12 @@ function DetailProduct() {
   const [variants, setVariants] = useState([]);
   const [selectedSize, setSelectedSize] = useState("");
   const [selectedVariant, setSelectedVariant] = useState(null);
+
+  const {
+    reviews,
+    loading: reviewsLoading,
+    error: reviewsError,
+  } = useProductReviews(id);
 
   useEffect(() => {
     setLoading(true);
@@ -58,7 +66,14 @@ function DetailProduct() {
         ) : error ? (
           <div className="text-center text-red-500 py-8">{error}</div>
         ) : product ? (
-          <ProductDetailSection product={product} />
+          <>
+            <ProductDetailSection product={product} />
+            <ReviewList
+              reviews={reviews}
+              loading={reviewsLoading}
+              error={reviewsError}
+            />
+          </>
         ) : null}
       </div>
       <Footer />
