@@ -55,8 +55,8 @@ function ProductList({ category }) {
               name={p.product_name || p.name}
               price={`Rp ${Number(p.price).toLocaleString("id-ID")}`}
               oldPrice={null}
-              rating={p.average_rating || 0}
-              reviews={p.total_reviews || 0}
+              rating={parseFloat(p.average_rating) || 0}
+              reviews={parseInt(p.total_reviews) || 0}
               link={"/detail/" + (p.product_id || p.id)}
             />
           ))}

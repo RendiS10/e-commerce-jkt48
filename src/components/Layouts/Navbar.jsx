@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import CustomerChat from "../Fragments/CustomerChat";
 
-function Navbar() {
+function Navbar({ onSearch, searchQuery, onSearchChange }) {
   const user = localStorage.getItem("user")
     ? JSON.parse(localStorage.getItem("user"))
     : null;
@@ -10,6 +10,21 @@ function Navbar() {
   const [chatOpen, setChatOpen] = useState(false);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
+
+  // Handle search form submission
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    if (onSearch) {
+      onSearch(e);
+    }
+  };
+
+  // Handle search input change
+  const handleSearchInputChange = (e) => {
+    if (onSearchChange) {
+      onSearchChange(e.target.value);
+    }
+  };
 
   // Close dropdown if click outside
   useEffect(() => {
@@ -38,22 +53,32 @@ function Navbar() {
         JKT48 Shop
       </div>
       <div className="flex gap-[3rem] items-center justify-center ml-auto">
-        <div className="flex items-center bg-[#f5f5f5] rounded-[6px] px-[10px] ml-10 transition-colors border-2 border-transparent focus-within:border-[#cd0c0d] focus-within:bg-white">
+        <form
+          onSubmit={handleSearchSubmit}
+          className="flex items-center bg-[#f5f5f5] rounded-[6px] px-[10px] ml-10 transition-colors border-2 border-transparent focus-within:border-[#cd0c0d] focus-within:bg-white"
+        >
           <input
             className="border-none bg-transparent py-2.5 px-2.5 outline-none text-base w-[220px]"
             type="text"
-            placeholder="What are you looking for?"
+            placeholder="Cari Produk Yang Anda Inginkan"
+            value={searchQuery || ""}
+            onChange={handleSearchInputChange}
           />
-          <svg
-            className="w-6 h-6 cursor-pointer stroke-[#222] fill-none transition-colors hover:stroke-[#e40046]"
-            viewBox="0 0 24 24"
-            fill="none"
-            strokeWidth="2"
+          <button
+            type="submit"
+            className="cursor-pointer p-1 rounded hover:bg-gray-100 transition-colors"
           >
-            <circle cx="11" cy="11" r="7" />
-            <line x1="21" y1="21" x2="16.65" y2="16.65" />
-          </svg>
-        </div>
+            <svg
+              className="w-6 h-6 stroke-[#222] fill-none transition-colors hover:stroke-[#e40046]"
+              viewBox="0 0 24 24"
+              fill="none"
+              strokeWidth="2"
+            >
+              <circle cx="11" cy="11" r="7" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+          </button>
+        </form>
         <Link
           to="/"
           className="text-[#cd0c0d] no-underline text-base relative pb-[2px] transition-colors after:content-[''] after:block after:absolute after:left-1/2 after:bottom-0 after:w-0 after:h-[2px] after:bg-[#cd0c0d] after:transition-all after:duration-500 after:ease-[cubic-bezier(0.4,0,0.2,1)] after:-translate-x-1/2 hover:after:w-full hover:after:left-1/2 hover:after:-translate-x-1/2 font-normal"

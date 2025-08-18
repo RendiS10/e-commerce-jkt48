@@ -2,6 +2,25 @@ import React from "react";
 import { Link } from "react-router-dom";
 
 function ProductCard({ image, name, price, oldPrice, rating, reviews, link }) {
+  // Function untuk menampilkan bintang berdasarkan rating
+  const renderStars = (rating) => {
+    const numRating = Number(rating) || 0;
+    const fullStars = Math.floor(numRating);
+    const hasHalfStar = numRating % 1 >= 0.5;
+    const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+
+    return (
+      <>
+        {"★".repeat(fullStars)}
+        {hasHalfStar && "☆"}
+        {"☆".repeat(emptyStars)}
+      </>
+    );
+  };
+
+  const numRating = Number(rating) || 0;
+  const numReviews = Number(reviews) || 0;
+
   return (
     <Link
       to={link}
@@ -26,10 +45,15 @@ function ProductCard({ image, name, price, oldPrice, rating, reviews, link }) {
         </div>
         <div className="flex items-center gap-1.5 text-base">
           <span className="text-[#ffb400] text-base">
-            {"★".repeat(rating)}
-            {"☆".repeat(5 - rating)}
+            {renderStars(numRating)}
           </span>
-          <span className="text-[#888] text-[0.95em]">({reviews})</span>
+          <span className="text-[#888] text-[0.95em]">
+            (
+            {numRating > 0
+              ? `${numRating.toFixed(1)} • ${numReviews}`
+              : numReviews}
+            ) review{numReviews !== 1 ? "s" : ""}
+          </span>
         </div>
       </div>
     </Link>

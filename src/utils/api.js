@@ -107,6 +107,7 @@ export const API_ENDPOINTS = {
 
   // Products
   PRODUCTS: "/products",
+  PRODUCTS_SEARCH: "/products/search",
   PRODUCT_IMAGES: "/product-images",
   VARIANTS: "/variants",
 
