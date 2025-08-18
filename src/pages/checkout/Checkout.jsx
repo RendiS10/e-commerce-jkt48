@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 import Button from "../../components/Elements/Button";
 import CartTable from "../../components/organisms/CartTable";
 import CartTotal from "../../components/Elements/CartTotal";
@@ -15,6 +16,27 @@ function Checkout() {
   const navigate = useNavigate();
   const [coupon, setCoupon] = useState("");
 
+  // Cek authentication terlebih dahulu
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      Swal.fire({
+        icon: "warning",
+        title: "Login Diperlukan",
+        text: "Silakan login terlebih dahulu untuk melihat keranjang",
+        confirmButtonText: "Login Sekarang",
+        confirmButtonColor: "#cd0c0d",
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+      }).then((result) => {
+        if (result.isConfirmed) {
+          navigate("/login");
+        }
+      });
+      return;
+    }
+  }, [navigate]);
+
   // Use custom hook for authenticated data fetching
   const {
     data: cartData,
@@ -24,12 +46,33 @@ function Checkout() {
   } = useAuthenticatedFetch(API_ENDPOINTS.CART, {
     transform: (data) => data.CartItems || [],
     onError: () => {
-      alert("Silakan login untuk melihat keranjang.");
-      window.location.href = "/login";
+      Swal.fire({
+        icon: "error",
+        title: "Sesi Berakhir",
+        text: "Sesi login Anda telah berakhir. Silakan login kembali.",
+        confirmButtonText: "Login",
+        confirmButtonColor: "#cd0c0d",
+      }).then(() => {
+        navigate("/login");
+      });
     },
   });
 
   const cart = cartData || [];
+
+  // Early return jika user belum login
+  if (!localStorage.getItem("token")) {
+    return (
+      <>
+        <Header />
+        <Navbar />
+        <div className="max-w-6xl mx-auto px-4 py-8 text-center">
+          <LoadingSpinner message="Checking authentication..." />
+        </div>
+        <Footer />
+      </>
+    );
+  }
 
   const handleQuantityChange = async (cart_item_id, value) => {
     try {
@@ -46,21 +89,27 @@ function Checkout() {
         }
       );
       if (!res.ok) throw new Error("Gagal update quantity");
-      // Setelah update, fetch ulang cart dari backend agar sync
-      const cartRes = await fetch("http://localhost:5000/api/cart", {
-        headers: { Authorization: `Bearer ${token}` },
+
+      // Refetch data menggunakan hook
+      refetch();
+    } catch (error) {
+      console.error("Error updating quantity:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Gagal Update Quantity",
+        text: "Gagal mengupdate jumlah item dalam keranjang",
+        confirmButtonColor: "#cd0c0d",
       });
-      if (!cartRes.ok) throw new Error("Gagal mengambil data keranjang");
-      const cartData = await cartRes.json();
-      setCart(cartData.CartItems || []);
-    } catch {
-      alert("Gagal update quantity keranjang");
     }
   };
 
   const handleRemove = async (cart_item_id) => {
     try {
       const token = localStorage.getItem("token");
+      if (!token) {
+        throw new Error("Token tidak ditemukan. Silakan login kembali.");
+      }
+
       const res = await fetch(
         `http://localhost:5000/api/cart/${cart_item_id}`,
         {
@@ -68,19 +117,30 @@ function Checkout() {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      if (!res.ok) throw new Error("Gagal hapus item");
-      // Setelah hapus, fetch ulang cart dari backend agar sync
-      const cartRes = await fetch("http://localhost:5000/api/cart", {
-        headers: { Authorization: `Bearer ${token}` },
+
+      if (!res.ok) {
+        let errorMessage = "Gagal hapus item";
+        try {
+          const errorData = await res.json();
+          errorMessage = errorData.message || errorMessage;
+        } catch (e) {
+          // Error parsing response, use default message
+        }
+        throw new Error(errorMessage);
+      }
+
+      // Refetch data menggunakan hook
+      refetch();
+    } catch (error) {
+      console.error("Error removing item:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Gagal Menghapus Item",
+        text: error.message,
+        confirmButtonColor: "#cd0c0d",
       });
-      if (!cartRes.ok) throw new Error("Gagal mengambil data keranjang");
-      const cartData = await cartRes.json();
-      setCart(cartData.CartItems || []);
-    } catch {
-      alert("Gagal menghapus item keranjang");
     }
   };
-
   const subtotal = cart.reduce(
     (sum, item) =>
       sum +
@@ -89,8 +149,8 @@ function Checkout() {
   );
 
   // Jika quantity 0, set price juga 0 pada tampilan
-  const displayCart = cart.map((item) =>
-    item.quantity > 0
+  const displayCart = cart.map((item) => {
+    return item.quantity > 0
       ? {
           ...item,
           price: item.Product?.price || 0,
@@ -106,8 +166,8 @@ function Checkout() {
           image: item.Product?.image_url || item.image,
           size: item.ProductVariant?.size || null,
           color: item.ProductVariant?.color || null,
-        }
-  );
+        };
+  });
 
   // Loading state
   if (loading) {

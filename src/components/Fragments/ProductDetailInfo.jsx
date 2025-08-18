@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 import RatingStars from "../Elements/RatingStars";
 import PriceTag from "../Elements/PriceTag";
 import ColorSelector from "../Elements/ColorSelector";
@@ -90,9 +91,13 @@ function ProductDetailInfo({ product }) {
 
   const handleAddToCart = async () => {
     if (!size || !color) {
-      window.alert(
-        "Silakan pilih ukuran dan warna yang tersedia terlebih dahulu."
-      );
+      Swal.fire({
+        icon: "warning",
+        title: "Pilih Ukuran dan Warna",
+        text: "Silakan pilih ukuran dan warna yang tersedia terlebih dahulu",
+        confirmButtonText: "OK",
+        confirmButtonColor: "#cd0c0d",
+      });
       return;
     }
     if (!isLoggedIn) {
@@ -123,28 +128,79 @@ function ProductDetailInfo({ product }) {
       });
       if (!res.ok) {
         const data = await res.json();
-        window.alert(data.message || "Gagal menambah ke keranjang");
+        Swal.fire({
+          icon: "error",
+          title: "Gagal Menambah ke Keranjang",
+          text: data.message || "Gagal menambah ke keranjang",
+          confirmButtonColor: "#cd0c0d",
+        });
         return;
       }
+
+      // Notifikasi sukses
+      Swal.fire({
+        icon: "success",
+        title: "Berhasil!",
+        text: "Produk berhasil ditambahkan ke keranjang",
+        confirmButtonColor: "#cd0c0d",
+        timer: 2000,
+        timerProgressBar: true,
+      });
+
       navigate("/checkout");
     } catch (err) {
-      window.alert("Gagal koneksi ke server");
+      Swal.fire({
+        icon: "error",
+        title: "Koneksi Gagal",
+        text: "Gagal koneksi ke server",
+        confirmButtonColor: "#cd0c0d",
+      });
     }
   };
 
   const handleBuyNow = () => {
     if (!size || !color) {
-      window.alert(
-        "Silakan pilih ukuran dan warna yang tersedia terlebih dahulu."
-      );
+      Swal.fire({
+        icon: "warning",
+        title: "Pilih Ukuran dan Warna",
+        text: "Silakan pilih ukuran dan warna yang tersedia terlebih dahulu",
+        confirmButtonText: "OK",
+        confirmButtonColor: "#cd0c0d",
+      });
       return;
     }
     if (!isLoggedIn) {
       navigate("/login");
       return;
     }
-    // Logika buy now bisa diisi sesuai kebutuhan (misal langsung checkout produk ini saja)
-    handleAddToCart();
+
+    // Cari variant_id jika ada
+    let variant_id = null;
+    if (product.ProductVariants && Array.isArray(product.ProductVariants)) {
+      const found = product.ProductVariants.find(
+        (v) => (v.color === color || !color) && (v.size === size || !size)
+      );
+      if (found) variant_id = found.variant_id;
+    }
+
+    // Siapkan data produk untuk checkout langsung
+    const checkoutData = {
+      product_id: product.product_id || product.id,
+      product_name: product.product_name || product.name,
+      price: product.price,
+      quantity: qty,
+      variant_id: variant_id || null,
+      size: size,
+      color: color,
+      image_url: product.image_url,
+      isDirect: true, // Flag untuk menandai ini direct buy
+    };
+
+    // Simpan data sementara di localStorage untuk checkout-detail
+    localStorage.setItem("directBuyItem", JSON.stringify(checkoutData));
+
+    // Redirect ke checkout-detail
+    navigate("/checkout-detail");
   };
 
   return (

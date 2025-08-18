@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 import Header from "../../components/Layouts/Header";
 import Navbar from "../../components/Layouts/Navbar";
 import Footer from "../../components/Layouts/Footer";
@@ -11,6 +12,7 @@ function Orders() {
   const [filteredOrders, setFilteredOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [statusFilter, setStatusFilter] = useState("Semua"); // Filter state
   const [searchQuery, setSearchQuery] = useState(""); // Search state
   const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -30,10 +32,24 @@ function Orders() {
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
-      alert("Silakan login terlebih dahulu");
-      navigate("/login");
+      Swal.fire({
+        icon: "warning",
+        title: "Login Diperlukan",
+        text: "Silakan login terlebih dahulu untuk melihat status pemesanan",
+        confirmButtonText: "Login Sekarang",
+        confirmButtonColor: "#cd0c0d",
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+      }).then((result) => {
+        if (result.isConfirmed) {
+          navigate("/login");
+        }
+      });
+      setIsAuthenticated(false);
       return;
     }
+
+    setIsAuthenticated(true);
 
     fetch("http://localhost:5000/api/orders", {
       headers: { Authorization: `Bearer ${token}` },
@@ -591,6 +607,11 @@ function Orders() {
       </span>
     );
   };
+
+  // Early return if not authenticated to prevent rendering
+  if (!isAuthenticated) {
+    return null;
+  }
 
   if (loading) {
     return (

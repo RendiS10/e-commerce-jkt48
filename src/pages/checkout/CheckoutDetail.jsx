@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 import Header from "../../components/Layouts/Header";
 import Navbar from "../../components/Layouts/Navbar";
 import Footer from "../../components/Layouts/Footer";
@@ -24,49 +25,102 @@ function CheckoutDetail() {
     payment_method: "transfer", // default transfer
   });
   const [cartItems, setCartItems] = useState([]);
+  const [directBuyItem, setDirectBuyItem] = useState(null);
   const [errors, setErrors] = useState({});
 
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
-      alert("Silakan login terlebih dahulu");
-      navigate("/login");
+      Swal.fire({
+        icon: "warning",
+        title: "Login Diperlukan",
+        text: "Silakan login terlebih dahulu untuk melanjutkan checkout",
+        confirmButtonText: "Login Sekarang",
+        confirmButtonColor: "#cd0c0d",
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+      }).then((result) => {
+        if (result.isConfirmed) {
+          navigate("/login");
+        }
+      });
       return;
     }
 
-    // Fetch cart data dan user profile
-    Promise.all([
-      fetch("http://localhost:5000/api/cart", {
-        headers: { Authorization: `Bearer ${token}` },
-      }),
+    // Cek apakah ada direct buy item
+    const directBuyData = localStorage.getItem("directBuyItem");
+
+    if (directBuyData) {
+      // Mode direct buy
+      const item = JSON.parse(directBuyData);
+      setDirectBuyItem(item);
+
+      // Fetch user profile saja
       fetch("http://localhost:5000/api/auth/me", {
         headers: { Authorization: `Bearer ${token}` },
-      }),
-    ])
-      .then(([cartRes, userRes]) => {
-        if (!cartRes.ok || !userRes.ok) {
-          throw new Error("Failed to fetch data");
-        }
-        return Promise.all([cartRes.json(), userRes.json()]);
       })
-      .then(([cartData, userData]) => {
-        setCartItems(cartData.CartItems || []);
-        // Pre-fill form dengan data user
-        setCheckoutData((prev) => ({
-          ...prev,
-          full_name: userData.full_name || "",
-          phone_number: userData.phone_number || "",
-          address: userData.address || "",
-          city: userData.city || "",
-          postal_code: userData.postal_code || "",
-        }));
-        setLoading(false);
-      })
-      .catch((error) => {
-        console.error("Error fetching data:", error);
-        alert("Gagal mengambil data checkout");
-        navigate("/checkout");
-      });
+        .then((userRes) => {
+          if (!userRes.ok) {
+            throw new Error("Failed to fetch user data");
+          }
+          return userRes.json();
+        })
+        .then((userData) => {
+          // Pre-fill form dengan data user
+          setCheckoutData((prev) => ({
+            ...prev,
+            full_name: userData.full_name || "",
+            phone_number: userData.phone_number || "",
+            address: userData.address || "",
+            city: userData.city || "",
+            postal_code: userData.postal_code || "",
+          }));
+          setLoading(false);
+        })
+        .catch((error) => {
+          console.error("Error fetching user data:", error);
+          alert("Gagal mengambil data user");
+          navigate("/");
+        });
+
+      // Clear direct buy data dari localStorage setelah digunakan
+      localStorage.removeItem("directBuyItem");
+    } else {
+      // Mode normal dari cart
+      // Fetch cart data dan user profile
+      Promise.all([
+        fetch("http://localhost:5000/api/cart", {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        fetch("http://localhost:5000/api/auth/me", {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+      ])
+        .then(([cartRes, userRes]) => {
+          if (!cartRes.ok || !userRes.ok) {
+            throw new Error("Failed to fetch data");
+          }
+          return Promise.all([cartRes.json(), userRes.json()]);
+        })
+        .then(([cartData, userData]) => {
+          setCartItems(cartData.CartItems || []);
+          // Pre-fill form dengan data user
+          setCheckoutData((prev) => ({
+            ...prev,
+            full_name: userData.full_name || "",
+            phone_number: userData.phone_number || "",
+            address: userData.address || "",
+            city: userData.city || "",
+            postal_code: userData.postal_code || "",
+          }));
+          setLoading(false);
+        })
+        .catch((error) => {
+          console.error("Error fetching data:", error);
+          alert("Gagal mengambil data checkout");
+          navigate("/checkout");
+        });
+    }
   }, [navigate]);
 
   const handleInputChange = (e) => {
@@ -132,13 +186,22 @@ function CheckoutDetail() {
         },
         payment_method: checkoutData.payment_method,
         notes: checkoutData.notes,
-        cart_items: cartItems.map((item) => ({
-          cart_item_id: item.cart_item_id,
-          product_id: item.product_id,
-          variant_id: item.variant_id,
-          quantity: item.quantity,
-          price: item.Product?.price || 0,
-        })),
+        cart_items: directBuyItem
+          ? [
+              {
+                product_id: directBuyItem.product_id,
+                variant_id: directBuyItem.variant_id,
+                quantity: directBuyItem.quantity,
+                price: directBuyItem.price,
+              },
+            ]
+          : cartItems.map((item) => ({
+              cart_item_id: item.cart_item_id,
+              product_id: item.product_id,
+              variant_id: item.variant_id,
+              quantity: item.quantity,
+              price: item.Product?.price || 0,
+            })),
       };
 
       const response = await fetch("http://localhost:5000/api/orders", {
@@ -176,10 +239,12 @@ function CheckoutDetail() {
   };
 
   // Calculate totals
-  const subtotal = cartItems.reduce(
-    (sum, item) => sum + (item.Product?.price || 0) * item.quantity,
-    0
-  );
+  const subtotal = directBuyItem
+    ? (directBuyItem.price || 0) * directBuyItem.quantity
+    : cartItems.reduce(
+        (sum, item) => sum + (item.Product?.price || 0) * item.quantity,
+        0
+      );
   const shippingCost = 15000; // Fixed shipping cost
   const total = subtotal + shippingCost;
 
@@ -187,7 +252,7 @@ function CheckoutDetail() {
     return <div className="text-center py-8">Loading...</div>;
   }
 
-  if (cartItems.length === 0) {
+  if (!directBuyItem && cartItems.length === 0) {
     return (
       <div className="text-center py-8">
         <p>Keranjang kosong</p>
@@ -384,48 +449,84 @@ function CheckoutDetail() {
 
             {/* Cart Items */}
             <div className="space-y-4 mb-6">
-              {cartItems.map((item) => {
-                const image = item.Product?.image_url || "/no-image.png";
-
-                return (
-                  <div
-                    key={item.cart_item_id}
-                    className="flex items-center gap-4 border-b pb-4"
-                  >
-                    <img
-                      src={image}
-                      alt={item.Product?.product_name || "Product"}
-                      className="w-16 h-16 object-contain rounded"
-                      onError={(e) => {
-                        e.target.onerror = null;
-                        e.target.src = "/no-image.png";
-                      }}
-                    />
-                    <div className="flex-1">
-                      <h4 className="font-medium">
-                        {item.Product?.product_name || "Unknown Product"}
-                      </h4>
-                      <p className="text-sm text-gray-600">
-                        {item.ProductVariant?.size &&
-                          `Size: ${item.ProductVariant.size}`}
-                        {item.ProductVariant?.color &&
-                          `, Color: ${item.ProductVariant.color}`}
-                      </p>
-                      <p className="text-sm">
-                        {formatRupiah(item.Product?.price || 0)} x{" "}
-                        {item.quantity}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-medium">
-                        {formatRupiah(
-                          (item.Product?.price || 0) * item.quantity
-                        )}
-                      </p>
-                    </div>
+              {directBuyItem ? (
+                // Tampilkan direct buy item
+                <div className="flex items-center gap-4 border-b pb-4">
+                  <img
+                    src={directBuyItem.image_url || "/no-image.png"}
+                    alt={directBuyItem.product_name || "Product"}
+                    className="w-16 h-16 object-contain rounded"
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = "/no-image.png";
+                    }}
+                  />
+                  <div className="flex-1">
+                    <h4 className="font-medium">
+                      {directBuyItem.product_name || "Unknown Product"}
+                    </h4>
+                    <p className="text-sm text-gray-600">
+                      {directBuyItem.size && `Size: ${directBuyItem.size}`}
+                      {directBuyItem.color && `, Color: ${directBuyItem.color}`}
+                    </p>
+                    <p className="text-sm">
+                      {formatRupiah(directBuyItem.price || 0)} x{" "}
+                      {directBuyItem.quantity}
+                    </p>
                   </div>
-                );
-              })}
+                  <div className="text-right">
+                    <p className="font-semibold">
+                      {formatRupiah(
+                        (directBuyItem.price || 0) * directBuyItem.quantity
+                      )}
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                // Tampilkan cart items
+                cartItems.map((item) => {
+                  const image = item.Product?.image_url || "/no-image.png";
+
+                  return (
+                    <div
+                      key={item.cart_item_id}
+                      className="flex items-center gap-4 border-b pb-4"
+                    >
+                      <img
+                        src={image}
+                        alt={item.Product?.product_name || "Product"}
+                        className="w-16 h-16 object-contain rounded"
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = "/no-image.png";
+                        }}
+                      />
+                      <div className="flex-1">
+                        <h4 className="font-medium">
+                          {item.Product?.product_name || "Unknown Product"}
+                        </h4>
+                        <p className="text-sm text-gray-600">
+                          {item.ProductVariant?.size &&
+                            `Size: ${item.ProductVariant.size}`}
+                          {item.ProductVariant?.color &&
+                            `, Color: ${item.ProductVariant.color}`}
+                        </p>
+                        <p className="text-sm">
+                          {formatRupiah(item.Product?.price || 0)} x{" "}
+                          {item.quantity}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-medium">
+                          {formatRupiah(
+                            (item.Product?.price || 0) * item.quantity
+                          )}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
             </div>
 
             {/* Order Total */}
