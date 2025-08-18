@@ -6,25 +6,31 @@ import Footer from "../../components/Layouts/Footer";
 
 function Login() {
   return (
-    <>
-      <header>
-        <Header />
-      </header>
-      <Navbar />
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <div className="flex w-full max-w-5xl bg-white rounded-lg shadow-none">
+    <div className="h-screen flex flex-col">
+      {/* Header and Navbar */}
+      <div className="flex-shrink-0">
+        <header>
+          <Header />
+        </header>
+        <Navbar />
+      </div>
+
+      {/* Main Content - Full Height */}
+      <div className="flex-1 flex items-center justify-center bg-white">
+        <div className="flex w-full max-w-5xl bg-white rounded-lg shadow-none gap-4">
           {/* Left Side - Image */}
-          <div className="hidden md:flex flex-1 items-center justify-center p-8">
+          <div className="hidden md:flex flex-1 items-center justify-end">
             <img
-              src="https://img.freepik.com/free-photo/shopping-cart-with-smartphone-bags-blue-background-3d-rendering_56104-1547.jpg?w=900&t=st=1690000000~exp=1690000600~hmac=example"
-              alt="Shopping Cart"
-              className="w-full max-w-md rounded-lg object-cover"
+              src="https://jkt48.com/images/logo.svg"
+              alt="JKT48 Logo"
+              className="w-[300px] h-[300px] max-w-md object-contain"
+              style={{ width: "300px", height: "300px" }}
             />
           </div>
           {/* Right Side - Form */}
-          <div className="flex-1 flex flex-col justify-center px-8 py-12">
+          <div className="flex-1 flex flex-col justify-center px-4 py-12">
             <h2 className="text-2xl md:text-3xl font-semibold mb-2 text-[#222]">
-              Log in to Your Account
+              Login Akun Anda
             </h2>
             <p className="text-sm text-[#222] mb-8">
               Masukan Email dan Password Yang Dimiliki
@@ -33,8 +39,12 @@ function Login() {
           </div>
         </div>
       </div>
-      <Footer />
-    </>
+
+      {/* Footer */}
+      <div className="flex-shrink-0">
+        <Footer />
+      </div>
+    </div>
   );
 }
 

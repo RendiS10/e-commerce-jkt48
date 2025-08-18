@@ -18,6 +18,9 @@ function Profile() {
     postal_code: "",
   });
   const [isEditing, setIsEditing] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const navigate = useNavigate();
 
   const { mutate, loading: updating, error: updateError } = useMutation();

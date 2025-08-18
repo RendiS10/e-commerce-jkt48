@@ -1,11 +1,14 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 import Input from "../atoms/Input";
 import Button from "../../components/Elements/Button";
 import { useForm } from "../../hooks/useForm.js";
 import { api, API_ENDPOINTS } from "../../utils/api.js";
 
 function RegisterForm() {
+  const navigate = useNavigate();
+
   const validationRules = {
     name: {
       required: true,
@@ -50,6 +53,19 @@ function RegisterForm() {
         successMessage: "Register success! Please login.",
         onSuccess: () => {
           console.log("Registration successful");
+          Swal.fire({
+            icon: "success",
+            title: "Pendaftaran Berhasil!",
+            text: "Akun Anda telah berhasil dibuat. Silakan login untuk melanjutkan.",
+            confirmButtonText: "Login Sekarang",
+            confirmButtonColor: "#cd0c0d",
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+          }).then((result) => {
+            if (result.isConfirmed) {
+              navigate("/login");
+            }
+          });
         },
       }
     );
@@ -94,13 +110,12 @@ function RegisterForm() {
         <div className="text-red-500 text-sm">{errors.password}</div>
       )}
       {error && <div className="text-red-500 text-sm mb-2">{error}</div>}
-      {success && <div className="text-green-600 text-sm mb-2">{success}</div>}
       <Button type="submit" className="w-full mt-2 mb-3" disabled={loading}>
         {loading ? "Registering..." : "Create Account"}
       </Button>
 
       <div className="flex items-center justify-center text-sm text-gray-600 mt-2">
-        Already have account?
+        Sudah Memiliki Akun ?
         <Link to="/login" className="ml-1 text-[#cd0c0d] hover:underline">
           Log in
         </Link>
