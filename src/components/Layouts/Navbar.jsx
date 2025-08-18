@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 import CustomerChat from "../Fragments/CustomerChat";
 
 function Navbar({ onSearch, searchQuery, onSearchChange }) {
@@ -42,9 +43,34 @@ function Navbar({ onSearch, searchQuery, onSearchChange }) {
   }, [dropdownOpen]);
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    navigate("/login");
+    Swal.fire({
+      icon: "question",
+      title: "Konfirmasi Logout",
+      text: "Apakah Anda yakin ingin keluar dari akun?",
+      showCancelButton: true,
+      confirmButtonText: "Ya, Logout",
+      cancelButtonText: "Batal",
+      confirmButtonColor: "#cd0c0d",
+      cancelButtonColor: "#6b7280",
+      reverseButtons: true,
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // SweetAlert sukses logout
+        Swal.fire({
+          icon: "success",
+          title: "Logout Berhasil!",
+          text: "Anda telah berhasil keluar dari akun.",
+          confirmButtonText: "OK",
+          confirmButtonColor: "#cd0c0d",
+          timer: 1500,
+          timerProgressBar: true,
+        }).then(() => {
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+          navigate("/login");
+        });
+      }
+    });
   };
 
   return (

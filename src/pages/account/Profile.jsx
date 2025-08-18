@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 import Header from "../../components/Layouts/Header";
 import Navbar from "../../components/Layouts/Navbar";
 import Footer from "../../components/Layouts/Footer";
@@ -21,9 +22,10 @@ function Profile() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [updating, setUpdating] = useState(false);
   const navigate = useNavigate();
 
-  const { mutate, loading: updating, error: updateError } = useMutation();
+  const { mutate, loading: mutateLoading, error: updateError } = useMutation();
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -101,12 +103,32 @@ function Profile() {
       // Update localStorage dengan data terbaru
       localStorage.setItem("user", JSON.stringify(updatedUser));
 
+      // SweetAlert untuk sukses update profile
+      Swal.fire({
+        icon: "success",
+        title: "Profile Berhasil Diperbarui!",
+        text: "Informasi profile Anda telah berhasil disimpan.",
+        confirmButtonText: "OK",
+        confirmButtonColor: "#cd0c0d",
+        timer: 2000,
+        timerProgressBar: true,
+      });
+
       setSuccess("Profile berhasil diperbarui!");
       setIsEditing(false);
 
       // Refresh user data
       await fetchUserProfile();
     } catch (err) {
+      // SweetAlert untuk error update profile
+      Swal.fire({
+        icon: "error",
+        title: "Gagal Memperbarui Profile!",
+        text: err.message || "Terjadi kesalahan saat menyimpan perubahan.",
+        confirmButtonText: "Coba Lagi",
+        confirmButtonColor: "#cd0c0d",
+      });
+
       setError(err.message);
     } finally {
       setUpdating(false);
