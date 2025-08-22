@@ -178,7 +178,10 @@ function Orders() {
       filtered = filtered.filter((order) => {
         return (
           order.order_id.toString().includes(query) ||
-          (order.tracking_number &&
+          // Hanya cari berdasarkan tracking number jika status sudah Dikirim atau Selesai
+          ((order.order_status === "Dikirim" ||
+            order.order_status === "Selesai") &&
+            order.tracking_number &&
             order.tracking_number.toLowerCase().includes(query)) ||
           (order.notes && order.notes.toLowerCase().includes(query))
         );
@@ -829,7 +832,7 @@ function Orders() {
             <div className="relative">
               <input
                 type="text"
-                placeholder="Cari berdasarkan Order ID, nomor resi, atau catatan..."
+                placeholder="Cari berdasarkan Order ID, nomor resi (untuk pesanan yang sudah dikirim), atau catatan..."
                 value={searchQuery}
                 onChange={handleSearchChange}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#cd0c0d] focus:border-[#cd0c0d] text-sm"
@@ -1079,12 +1082,16 @@ function Orders() {
                     <p className="text-sm text-gray-600">Metode Pembayaran</p>
                     <p className="font-medium">Transfer Bank</p>
                   </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Nomor Resi</p>
-                    <p className="font-medium text-sm text-blue-600">
-                      {order.tracking_number || "Belum tersedia"}
-                    </p>
-                  </div>
+                  {/* Tampilkan nomor resi hanya jika status sudah Dikirim atau Selesai */}
+                  {(order.order_status === "Dikirim" ||
+                    order.order_status === "Selesai") && (
+                    <div>
+                      <p className="text-sm text-gray-600">Nomor Resi</p>
+                      <p className="font-medium text-sm text-blue-600">
+                        {order.tracking_number || "Belum tersedia"}
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -1324,11 +1331,14 @@ function Orders() {
                       );
                     })()}
 
-                  {order.tracking_number && (
-                    <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded text-sm font-mono">
-                      📋 Resi: {order.tracking_number}
-                    </span>
-                  )}
+                  {/* Tampilkan nomor resi hanya jika status sudah Dikirim atau Selesai */}
+                  {(order.order_status === "Dikirim" ||
+                    order.order_status === "Selesai") &&
+                    order.tracking_number && (
+                      <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded text-sm font-mono">
+                        📋 Resi: {order.tracking_number}
+                      </span>
+                    )}
                 </div>
               </div>
             ))}
