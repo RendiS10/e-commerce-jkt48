@@ -1,4 +1,5 @@
 import React, { useState, useContext } from "react";
+import Swal from "sweetalert2";
 import { UserContext } from "../../../main.jsx";
 import AdminLayout from "../../../components/admin/AdminLayout.jsx";
 import LoadingSpinner from "../../../components/atoms/LoadingSpinner.jsx";
@@ -37,6 +38,42 @@ const Products = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // SweetAlert konfirmasi sebelum menyimpan produk
+    const result = await Swal.fire({
+      icon: "question",
+      title: editingProduct
+        ? "Konfirmasi Update Produk"
+        : "Konfirmasi Tambah Produk",
+      text: editingProduct
+        ? "Apakah Anda yakin ingin mengupdate produk ini?"
+        : "Apakah Anda yakin ingin menambahkan produk baru?",
+      html: `
+        <div class="text-left">
+          <p><strong>Nama Produk:</strong> ${formData.product_name}</p>
+          <p><strong>Harga:</strong> Rp${parseInt(
+            formData.price || 0
+          ).toLocaleString()}</p>
+          <p><strong>Kategori:</strong> ${
+            categories?.find((cat) => cat.category_id == formData.category_id)
+              ?.category_name || "Belum dipilih"
+          }</p>
+          <p class="text-sm text-gray-600 mt-2">Pastikan semua data sudah benar sebelum melanjutkan.</p>
+        </div>
+      `,
+      showCancelButton: true,
+      confirmButtonText: editingProduct
+        ? "Ya, Update Produk"
+        : "Ya, Tambah Produk",
+      cancelButtonText: "Batal",
+      confirmButtonColor: "#cd0c0d",
+      cancelButtonColor: "#6b7280",
+      reverseButtons: true,
+    });
+
+    if (!result.isConfirmed) {
+      return; // User membatalkan
+    }
+
     try {
       await mutate(
         async () => {
@@ -58,6 +95,19 @@ const Products = () => {
         },
         {
           onSuccess: () => {
+            // SweetAlert sukses produk disimpan
+            Swal.fire({
+              icon: "success",
+              title: editingProduct
+                ? "Produk Berhasil Diupdate!"
+                : "Produk Berhasil Ditambahkan!",
+              text: editingProduct
+                ? "Produk telah berhasil diupdate ke dalam sistem."
+                : "Produk baru telah berhasil ditambahkan ke dalam sistem.",
+              confirmButtonText: "OK",
+              confirmButtonColor: "#cd0c0d",
+            });
+
             refetchProducts();
             setShowForm(false);
             setEditingProduct(null);
@@ -76,6 +126,17 @@ const Products = () => {
       );
     } catch (error) {
       console.error("Error saving product:", error);
+
+      // SweetAlert error menyimpan produk
+      Swal.fire({
+        icon: "error",
+        title: editingProduct ? "Gagal Update Produk" : "Gagal Tambah Produk",
+        text:
+          error.message ||
+          "Terjadi kesalahan saat menyimpan produk. Silakan coba lagi.",
+        confirmButtonText: "Coba Lagi",
+        confirmButtonColor: "#cd0c0d",
+      });
     }
   };
 
@@ -92,7 +153,28 @@ const Products = () => {
   };
 
   const handleDelete = async (productId) => {
-    if (!confirm("Are you sure you want to delete this product?")) return;
+    // SweetAlert konfirmasi sebelum hapus produk
+    const result = await Swal.fire({
+      icon: "warning",
+      title: "Hapus Produk",
+      text: "Apakah Anda yakin ingin menghapus produk ini?",
+      html: `
+        <div class="text-center">
+          <p>Produk yang sudah dihapus tidak dapat dikembalikan.</p>
+          <p class="text-sm text-gray-600 mt-2">Pastikan keputusan Anda sudah tepat.</p>
+        </div>
+      `,
+      showCancelButton: true,
+      confirmButtonText: "Ya, Hapus Produk",
+      cancelButtonText: "Batal",
+      confirmButtonColor: "#dc2626",
+      cancelButtonColor: "#6b7280",
+      reverseButtons: true,
+    });
+
+    if (!result.isConfirmed) {
+      return;
+    }
 
     try {
       await mutate(
@@ -108,12 +190,34 @@ const Products = () => {
           );
         },
         {
-          onSuccess: () => refetchProducts(),
+          onSuccess: () => {
+            // SweetAlert sukses produk dihapus
+            Swal.fire({
+              icon: "success",
+              title: "Produk Berhasil Dihapus!",
+              text: "Produk telah berhasil dihapus dari sistem.",
+              confirmButtonText: "OK",
+              confirmButtonColor: "#cd0c0d",
+            });
+
+            refetchProducts();
+          },
           successMessage: "Product deleted successfully!",
         }
       );
     } catch (error) {
       console.error("Error deleting product:", error);
+
+      // SweetAlert error hapus produk
+      Swal.fire({
+        icon: "error",
+        title: "Gagal Hapus Produk",
+        text:
+          error.message ||
+          "Terjadi kesalahan saat menghapus produk. Silakan coba lagi.",
+        confirmButtonText: "Coba Lagi",
+        confirmButtonColor: "#cd0c0d",
+      });
     }
   };
 

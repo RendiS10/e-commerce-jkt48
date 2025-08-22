@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext } from "react";
+import Swal from "sweetalert2";
 import { UserContext } from "../../../main.jsx";
 import AdminLayout from "../../../components/admin/AdminLayout.jsx";
 
@@ -49,6 +50,46 @@ const ProductVariants = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Get selected product name for display
+    const selectedProduct = products.find(
+      (p) => p.product_id == formData.product_id
+    );
+
+    // SweetAlert konfirmasi sebelum menyimpan variant
+    const result = await Swal.fire({
+      icon: "question",
+      title: editingVariant
+        ? "Konfirmasi Update Variant"
+        : "Konfirmasi Tambah Variant",
+      text: editingVariant
+        ? "Apakah Anda yakin ingin mengupdate variant ini?"
+        : "Apakah Anda yakin ingin menambahkan variant baru?",
+      html: `
+        <div class="text-left">
+          <p><strong>Produk:</strong> ${
+            selectedProduct?.product_name || "Tidak dipilih"
+          }</p>
+          <p><strong>Warna:</strong> ${formData.color || "Tidak ada"}</p>
+          <p><strong>Ukuran:</strong> ${formData.size || "Tidak ada"}</p>
+          <p><strong>Stok:</strong> ${formData.variant_stock || 0}</p>
+          <p class="text-sm text-gray-600 mt-2">Pastikan semua data sudah benar sebelum melanjutkan.</p>
+        </div>
+      `,
+      showCancelButton: true,
+      confirmButtonText: editingVariant
+        ? "Ya, Update Variant"
+        : "Ya, Tambah Variant",
+      cancelButtonText: "Batal",
+      confirmButtonColor: "#cd0c0d",
+      cancelButtonColor: "#6b7280",
+      reverseButtons: true,
+    });
+
+    if (!result.isConfirmed) {
+      return; // User membatalkan
+    }
+
     const token = localStorage.getItem("token");
 
     try {
@@ -66,6 +107,19 @@ const ProductVariants = () => {
       });
 
       if (response.ok) {
+        // SweetAlert sukses variant disimpan
+        await Swal.fire({
+          icon: "success",
+          title: editingVariant
+            ? "Variant Berhasil Diupdate!"
+            : "Variant Berhasil Ditambahkan!",
+          text: editingVariant
+            ? "Variant telah berhasil diupdate ke dalam sistem."
+            : "Variant baru telah berhasil ditambahkan ke dalam sistem.",
+          confirmButtonText: "OK",
+          confirmButtonColor: "#cd0c0d",
+        });
+
         fetchVariants();
         setShowForm(false);
         setEditingVariant(null);
@@ -75,9 +129,22 @@ const ProductVariants = () => {
           size: "",
           variant_stock: "",
         });
+      } else {
+        throw new Error("Failed to save variant");
       }
     } catch (error) {
       console.error("Error saving variant:", error);
+
+      // SweetAlert error menyimpan variant
+      Swal.fire({
+        icon: "error",
+        title: editingVariant ? "Gagal Update Variant" : "Gagal Tambah Variant",
+        text:
+          error.message ||
+          "Terjadi kesalahan saat menyimpan variant. Silakan coba lagi.",
+        confirmButtonText: "Coba Lagi",
+        confirmButtonColor: "#cd0c0d",
+      });
     }
   };
 
@@ -93,7 +160,35 @@ const ProductVariants = () => {
   };
 
   const handleDelete = async (variantId) => {
-    if (!confirm("Are you sure you want to delete this variant?")) return;
+    // Find variant and product for display information
+    const variant = variants.find((v) => v.variant_id === variantId);
+    const product = products.find((p) => p.product_id === variant?.product_id);
+
+    // SweetAlert konfirmasi sebelum hapus variant
+    const result = await Swal.fire({
+      icon: "warning",
+      title: "Hapus Variant",
+      text: "Apakah Anda yakin ingin menghapus variant ini?",
+      html: `
+        <div class="text-center">
+          <p><strong>Produk:</strong> ${product?.product_name || "Unknown"}</p>
+          <p><strong>Warna:</strong> ${variant?.color || "Tidak ada"}</p>
+          <p><strong>Ukuran:</strong> ${variant?.size || "Tidak ada"}</p>
+          <p><strong>Stok:</strong> ${variant?.variant_stock || 0}</p>
+          <p class="text-sm text-gray-600 mt-2">Variant yang sudah dihapus tidak dapat dikembalikan.</p>
+        </div>
+      `,
+      showCancelButton: true,
+      confirmButtonText: "Ya, Hapus Variant",
+      cancelButtonText: "Batal",
+      confirmButtonColor: "#dc2626",
+      cancelButtonColor: "#6b7280",
+      reverseButtons: true,
+    });
+
+    if (!result.isConfirmed) {
+      return;
+    }
 
     const token = localStorage.getItem("token");
     try {
@@ -108,10 +203,32 @@ const ProductVariants = () => {
       );
 
       if (response.ok) {
+        // SweetAlert sukses variant dihapus
+        await Swal.fire({
+          icon: "success",
+          title: "Variant Berhasil Dihapus!",
+          text: "Variant telah berhasil dihapus dari sistem.",
+          confirmButtonText: "OK",
+          confirmButtonColor: "#cd0c0d",
+        });
+
         fetchVariants();
+      } else {
+        throw new Error("Failed to delete variant");
       }
     } catch (error) {
       console.error("Error deleting variant:", error);
+
+      // SweetAlert error hapus variant
+      Swal.fire({
+        icon: "error",
+        title: "Gagal Hapus Variant",
+        text:
+          error.message ||
+          "Terjadi kesalahan saat menghapus variant. Silakan coba lagi.",
+        confirmButtonText: "Coba Lagi",
+        confirmButtonColor: "#cd0c0d",
+      });
     }
   };
 

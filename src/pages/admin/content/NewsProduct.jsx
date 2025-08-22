@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext } from "react";
+import Swal from "sweetalert2";
 import { UserContext } from "../../../main.jsx";
 import AdminLayout from "../../../components/admin/AdminLayout.jsx";
 
@@ -73,6 +74,48 @@ const NewsProduct = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Find product for display information
+    const selectedProduct = products.find(
+      (p) => p.product_id.toString() === formData.product_id.toString()
+    );
+
+    // SweetAlert konfirmasi sebelum simpan news
+    const result = await Swal.fire({
+      icon: "question",
+      title: editingNews ? "Edit News Produk" : "Tambah News Produk",
+      text: editingNews
+        ? "Apakah Anda yakin ingin mengupdate news produk ini?"
+        : "Apakah Anda yakin ingin menambahkan news produk ini?",
+      html: `
+        <div class="text-center">
+          <p><strong>Produk:</strong> ${
+            selectedProduct?.product_name || "Tidak dipilih"
+          }</p>
+          <p><strong>Link Highlight:</strong> ${
+            formData.highlight_link || "Kosong"
+          }</p>
+          <p><strong>Urutan Tampil:</strong> ${
+            formData.display_order || "Tidak diset"
+          }</p>
+          <p><strong>Status:</strong> ${
+            formData.is_active ? "Aktif" : "Tidak Aktif"
+          }</p>
+          <p class="text-sm text-gray-600 mt-2">Pastikan semua data sudah benar sebelum melanjutkan.</p>
+        </div>
+      `,
+      showCancelButton: true,
+      confirmButtonText: editingNews ? "Ya, Update News" : "Ya, Tambah News",
+      cancelButtonText: "Batal",
+      confirmButtonColor: "#cd0c0d",
+      cancelButtonColor: "#6b7280",
+      reverseButtons: true,
+    });
+
+    if (!result.isConfirmed) {
+      return;
+    }
+
     const token = localStorage.getItem("token");
 
     try {
@@ -90,6 +133,19 @@ const NewsProduct = () => {
       });
 
       if (response.ok) {
+        // SweetAlert sukses news disimpan
+        await Swal.fire({
+          icon: "success",
+          title: editingNews
+            ? "News Berhasil Diupdate!"
+            : "News Berhasil Ditambahkan!",
+          text: editingNews
+            ? "News produk telah berhasil diupdate."
+            : "News produk baru telah berhasil ditambahkan.",
+          confirmButtonText: "OK",
+          confirmButtonColor: "#cd0c0d",
+        });
+
         fetchNews();
         setShowForm(false);
         setEditingNews(null);
@@ -101,9 +157,23 @@ const NewsProduct = () => {
           display_order: "",
           is_active: true,
         });
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Gagal menyimpan news");
       }
     } catch (error) {
       console.error("Error saving news:", error);
+
+      // SweetAlert error simpan news
+      Swal.fire({
+        icon: "error",
+        title: "Gagal Menyimpan News",
+        text:
+          error.message ||
+          "Terjadi kesalahan saat menyimpan news. Silakan coba lagi.",
+        confirmButtonText: "Coba Lagi",
+        confirmButtonColor: "#cd0c0d",
+      });
     }
   };
 
@@ -121,7 +191,51 @@ const NewsProduct = () => {
   };
 
   const handleDelete = async (newsId) => {
-    if (!confirm("Are you sure you want to delete this news item?")) return;
+    // Find news and product for display information
+    const newsItem = news.find((n) => n.news_id === newsId);
+    const product = products.find((p) => p.product_id === newsItem?.product_id);
+
+    // SweetAlert konfirmasi sebelum hapus news
+    const result = await Swal.fire({
+      icon: "warning",
+      title: "Hapus News Produk",
+      text: "Apakah Anda yakin ingin menghapus news produk ini?",
+      html: `
+        <div class="text-center">
+          <p><strong>Produk:</strong> ${product?.product_name || "Unknown"}</p>
+          <p><strong>Link Highlight:</strong> ${
+            newsItem?.highlight_link || "Tidak ada"
+          }</p>
+          <p><strong>Urutan Tampil:</strong> ${
+            newsItem?.display_order || "Tidak diset"
+          }</p>
+          <p><strong>Status:</strong> ${
+            newsItem?.is_active ? "Aktif" : "Tidak Aktif"
+          }</p>
+          ${
+            newsItem?.image_highlight
+              ? `
+            <div class="mt-3 mb-2">
+              <img src="${newsItem.image_highlight}" alt="Preview" style="max-width: 150px; max-height: 100px; margin: 0 auto; border-radius: 8px;" 
+                   onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'150\\' height=\\'100\\' viewBox=\\'0 0 150 100\\'%3E%3Crect width=\\'150\\' height=\\'100\\' fill=\\'%23f3f4f6\\'/%3E%3Ctext x=\\'75\\' y=\\'55\\' text-anchor=\\'middle\\' font-size=\\'14\\'%3EGambar tidak ditemukan%3C/text%3E%3C/svg%3E';">
+            </div>
+          `
+              : ""
+          }
+          <p class="text-sm text-gray-600 mt-2">News yang sudah dihapus tidak dapat dikembalikan.</p>
+        </div>
+      `,
+      showCancelButton: true,
+      confirmButtonText: "Ya, Hapus News",
+      cancelButtonText: "Batal",
+      confirmButtonColor: "#dc2626",
+      cancelButtonColor: "#6b7280",
+      reverseButtons: true,
+    });
+
+    if (!result.isConfirmed) {
+      return;
+    }
 
     const token = localStorage.getItem("token");
     try {
@@ -133,14 +247,78 @@ const NewsProduct = () => {
       });
 
       if (response.ok) {
+        // SweetAlert sukses news dihapus
+        await Swal.fire({
+          icon: "success",
+          title: "News Berhasil Dihapus!",
+          text: "News produk telah berhasil dihapus dari sistem.",
+          confirmButtonText: "OK",
+          confirmButtonColor: "#cd0c0d",
+        });
+
         fetchNews();
+      } else {
+        throw new Error("Failed to delete news");
       }
     } catch (error) {
       console.error("Error deleting news:", error);
+
+      // SweetAlert error hapus news
+      Swal.fire({
+        icon: "error",
+        title: "Gagal Hapus News",
+        text:
+          error.message ||
+          "Terjadi kesalahan saat menghapus news. Silakan coba lagi.",
+        confirmButtonText: "Coba Lagi",
+        confirmButtonColor: "#cd0c0d",
+      });
     }
   };
 
   const toggleActive = async (newsId, currentStatus) => {
+    // Find news and product for display information
+    const newsItem = news.find((n) => n.news_id === newsId);
+    const product = products.find((p) => p.product_id === newsItem?.product_id);
+    const newStatus = !currentStatus;
+
+    // SweetAlert konfirmasi sebelum toggle status
+    const result = await Swal.fire({
+      icon: "question",
+      title: `${newStatus ? "Aktifkan" : "Nonaktifkan"} News Produk`,
+      text: `Apakah Anda yakin ingin ${
+        newStatus ? "mengaktifkan" : "menonaktifkan"
+      } news produk ini?`,
+      html: `
+        <div class="text-center">
+          <p><strong>Produk:</strong> ${product?.product_name || "Unknown"}</p>
+          <p><strong>Status Saat Ini:</strong> ${
+            currentStatus ? "Aktif" : "Tidak Aktif"
+          }</p>
+          <p><strong>Status Baru:</strong> ${
+            newStatus ? "Aktif" : "Tidak Aktif"
+          }</p>
+          <p class="text-sm text-gray-600 mt-2">
+            ${
+              newStatus
+                ? "News ini akan ditampilkan di halaman utama."
+                : "News ini akan disembunyikan dari halaman utama."
+            }
+          </p>
+        </div>
+      `,
+      showCancelButton: true,
+      confirmButtonText: `Ya, ${newStatus ? "Aktifkan" : "Nonaktifkan"}`,
+      cancelButtonText: "Batal",
+      confirmButtonColor: newStatus ? "#10b981" : "#f59e0b",
+      cancelButtonColor: "#6b7280",
+      reverseButtons: true,
+    });
+
+    if (!result.isConfirmed) {
+      return;
+    }
+
     const token = localStorage.getItem("token");
     try {
       const response = await fetch(`http://localhost:5000/api/news/${newsId}`, {
@@ -149,14 +327,38 @@ const NewsProduct = () => {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ is_active: !currentStatus }),
+        body: JSON.stringify({ is_active: newStatus }),
       });
 
       if (response.ok) {
+        // SweetAlert sukses toggle status
+        await Swal.fire({
+          icon: "success",
+          title: `News Berhasil ${newStatus ? "Diaktifkan" : "Dinonaktifkan"}!`,
+          text: `Status news produk telah berhasil diubah menjadi ${
+            newStatus ? "aktif" : "tidak aktif"
+          }.`,
+          confirmButtonText: "OK",
+          confirmButtonColor: "#cd0c0d",
+        });
+
         fetchNews();
+      } else {
+        throw new Error("Failed to toggle status");
       }
     } catch (error) {
       console.error("Error toggling status:", error);
+
+      // SweetAlert error toggle status
+      Swal.fire({
+        icon: "error",
+        title: "Gagal Mengubah Status",
+        text:
+          error.message ||
+          "Terjadi kesalahan saat mengubah status. Silakan coba lagi.",
+        confirmButtonText: "Coba Lagi",
+        confirmButtonColor: "#cd0c0d",
+      });
     }
   };
 

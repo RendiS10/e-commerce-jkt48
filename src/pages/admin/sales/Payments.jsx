@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import Swal from "sweetalert2";
 import AdminLayoutFixed from "../../../components/admin/AdminLayoutFixed";
 
 function Payments() {
@@ -45,9 +46,50 @@ function Payments() {
   };
 
   const handleApprovePayment = async (paymentId, adminNotes = "") => {
-    if (!window.confirm("Apakah Anda yakin ingin menyetujui pembayaran ini?")) {
+    // Find payment for display information
+    const payment = payments.find((p) => p.payment_id === paymentId);
+
+    // SweetAlert konfirmasi sebelum approve pembayaran
+    const result = await Swal.fire({
+      icon: "question",
+      title: "Setujui Pembayaran",
+      text: "Apakah Anda yakin ingin menyetujui pembayaran ini?",
+      html: `
+        <div class="text-center">
+          <p><strong>Order ID:</strong> ${
+            payment?.Order?.order_id || "Unknown"
+          }</p>
+          <p><strong>Pelanggan:</strong> ${
+            payment?.Order?.User?.full_name || "Unknown"
+          }</p>
+          <p><strong>Jumlah:</strong> ${formatRupiah(payment?.amount || 0)}</p>
+          <p><strong>Metode:</strong> ${
+            payment?.payment_method || "Unknown"
+          }</p>
+          <p class="text-sm text-gray-600 mt-2">Setelah disetujui, status order akan diupdate dan pelanggan akan diberitahu.</p>
+        </div>
+      `,
+      input: "textarea",
+      inputLabel: "Catatan Admin (Opsional)",
+      inputPlaceholder: "Masukkan catatan untuk pembayaran ini...",
+      inputValue: adminNotes,
+      showCancelButton: true,
+      confirmButtonText: "Ya, Setujui Pembayaran",
+      cancelButtonText: "Batal",
+      confirmButtonColor: "#10b981",
+      cancelButtonColor: "#6b7280",
+      reverseButtons: true,
+      inputValidator: (value) => {
+        // Catatan tidak wajib untuk approval
+        return null;
+      },
+    });
+
+    if (!result.isConfirmed) {
       return;
     }
+
+    const finalAdminNotes = result.value || "";
 
     setActionLoading(true);
     try {
@@ -60,7 +102,7 @@ function Payments() {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({ admin_notes: adminNotes }),
+          body: JSON.stringify({ admin_notes: finalAdminNotes }),
         }
       );
 
@@ -69,24 +111,84 @@ function Payments() {
         throw new Error(errorData.message || "Gagal menyetujui pembayaran");
       }
 
-      alert("Pembayaran berhasil disetujui");
+      // SweetAlert sukses pembayaran disetujui
+      await Swal.fire({
+        icon: "success",
+        title: "Pembayaran Berhasil Disetujui!",
+        text: "Pembayaran telah berhasil disetujui dan status order telah diupdate.",
+        confirmButtonText: "OK",
+        confirmButtonColor: "#cd0c0d",
+      });
+
       fetchPayments(); // Refresh data
       handleCloseDetail();
     } catch (error) {
       console.error("Error approving payment:", error);
-      alert(error.message);
+
+      // SweetAlert error approve pembayaran
+      Swal.fire({
+        icon: "error",
+        title: "Gagal Menyetujui Pembayaran",
+        text:
+          error.message ||
+          "Terjadi kesalahan saat menyetujui pembayaran. Silakan coba lagi.",
+        confirmButtonText: "Coba Lagi",
+        confirmButtonColor: "#cd0c0d",
+      });
     } finally {
       setActionLoading(false);
     }
   };
 
   const handleRejectPayment = async (paymentId) => {
-    const adminNotes = prompt("Masukkan alasan penolakan:");
-    if (!adminNotes) return;
+    // Find payment for display information
+    const payment = payments.find((p) => p.payment_id === paymentId);
 
-    if (!window.confirm("Apakah Anda yakin ingin menolak pembayaran ini?")) {
+    // SweetAlert konfirmasi sebelum reject pembayaran dengan input alasan
+    const result = await Swal.fire({
+      icon: "warning",
+      title: "Tolak Pembayaran",
+      text: "Apakah Anda yakin ingin menolak pembayaran ini?",
+      html: `
+        <div class="text-center">
+          <p><strong>Order ID:</strong> ${
+            payment?.Order?.order_id || "Unknown"
+          }</p>
+          <p><strong>Pelanggan:</strong> ${
+            payment?.Order?.User?.full_name || "Unknown"
+          }</p>
+          <p><strong>Jumlah:</strong> ${formatRupiah(payment?.amount || 0)}</p>
+          <p><strong>Metode:</strong> ${
+            payment?.payment_method || "Unknown"
+          }</p>
+          <p class="text-sm text-gray-600 mt-2">Penolakan pembayaran tidak dapat dibatalkan. Pastikan Anda memberikan alasan yang jelas.</p>
+        </div>
+      `,
+      input: "textarea",
+      inputLabel: "Alasan Penolakan *",
+      inputPlaceholder: "Masukkan alasan penolakan pembayaran ini...",
+      showCancelButton: true,
+      confirmButtonText: "Ya, Tolak Pembayaran",
+      cancelButtonText: "Batal",
+      confirmButtonColor: "#dc2626",
+      cancelButtonColor: "#6b7280",
+      reverseButtons: true,
+      inputValidator: (value) => {
+        if (!value || value.trim() === "") {
+          return "Alasan penolakan harus diisi!";
+        }
+        if (value.trim().length < 10) {
+          return "Alasan penolakan minimal 10 karakter!";
+        }
+        return null;
+      },
+    });
+
+    if (!result.isConfirmed) {
       return;
     }
+
+    const adminNotes = result.value.trim();
 
     setActionLoading(true);
     try {
@@ -108,12 +210,30 @@ function Payments() {
         throw new Error(errorData.message || "Gagal menolak pembayaran");
       }
 
-      alert("Pembayaran berhasil ditolak");
+      // SweetAlert sukses pembayaran ditolak
+      await Swal.fire({
+        icon: "success",
+        title: "Pembayaran Berhasil Ditolak!",
+        text: "Pembayaran telah berhasil ditolak dan pelanggan akan diberitahu.",
+        confirmButtonText: "OK",
+        confirmButtonColor: "#cd0c0d",
+      });
+
       fetchPayments(); // Refresh data
       handleCloseDetail();
     } catch (error) {
       console.error("Error rejecting payment:", error);
-      alert(error.message);
+
+      // SweetAlert error reject pembayaran
+      Swal.fire({
+        icon: "error",
+        title: "Gagal Menolak Pembayaran",
+        text:
+          error.message ||
+          "Terjadi kesalahan saat menolak pembayaran. Silakan coba lagi.",
+        confirmButtonText: "Coba Lagi",
+        confirmButtonColor: "#cd0c0d",
+      });
     } finally {
       setActionLoading(false);
     }

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext } from "react";
+import Swal from "sweetalert2";
 import { UserContext } from "../../../main.jsx";
 import AdminLayout from "../../../components/admin/AdminLayout.jsx";
 
@@ -48,6 +49,47 @@ const ProductImages = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Find product for display information
+    const selectedProduct = products.find(
+      (p) => p.product_id.toString() === formData.product_id.toString()
+    );
+
+    // SweetAlert konfirmasi sebelum simpan image
+    const result = await Swal.fire({
+      icon: "question",
+      title: editingImage ? "Edit Gambar Produk" : "Tambah Gambar Produk",
+      text: editingImage
+        ? "Apakah Anda yakin ingin mengupdate gambar produk ini?"
+        : "Apakah Anda yakin ingin menambahkan gambar produk ini?",
+      html: `
+        <div class="text-center">
+          <p><strong>Produk:</strong> ${
+            selectedProduct?.product_name || "Unknown"
+          }</p>
+          <p><strong>URL Gambar:</strong> ${formData.image_path}</p>
+          ${
+            formData.alt_text
+              ? `<p><strong>Alt Text:</strong> ${formData.alt_text}</p>`
+              : ""
+          }
+          <p class="text-sm text-gray-600 mt-2">Pastikan URL gambar sudah benar sebelum melanjutkan.</p>
+        </div>
+      `,
+      showCancelButton: true,
+      confirmButtonText: editingImage
+        ? "Ya, Update Gambar"
+        : "Ya, Tambah Gambar",
+      cancelButtonText: "Batal",
+      confirmButtonColor: "#cd0c0d",
+      cancelButtonColor: "#6b7280",
+      reverseButtons: true,
+    });
+
+    if (!result.isConfirmed) {
+      return;
+    }
+
     const token = localStorage.getItem("token");
 
     try {
@@ -65,6 +107,19 @@ const ProductImages = () => {
       });
 
       if (response.ok) {
+        // SweetAlert sukses gambar disimpan
+        await Swal.fire({
+          icon: "success",
+          title: editingImage
+            ? "Gambar Berhasil Diupdate!"
+            : "Gambar Berhasil Ditambahkan!",
+          text: editingImage
+            ? "Gambar produk telah berhasil diupdate."
+            : "Gambar produk baru telah berhasil ditambahkan.",
+          confirmButtonText: "OK",
+          confirmButtonColor: "#cd0c0d",
+        });
+
         fetchImages();
         setShowForm(false);
         setEditingImage(null);
@@ -75,11 +130,21 @@ const ProductImages = () => {
         });
       } else {
         const errorData = await response.json();
-        alert(`Error: ${errorData.message}`);
+        throw new Error(errorData.message || "Gagal menyimpan gambar");
       }
     } catch (error) {
       console.error("Error saving image:", error);
-      alert("Error saving image. Please try again.");
+
+      // SweetAlert error simpan gambar
+      Swal.fire({
+        icon: "error",
+        title: "Gagal Menyimpan Gambar",
+        text:
+          error.message ||
+          "Terjadi kesalahan saat menyimpan gambar. Silakan coba lagi.",
+        confirmButtonText: "Coba Lagi",
+        confirmButtonColor: "#cd0c0d",
+      });
     }
   };
 
@@ -94,7 +159,44 @@ const ProductImages = () => {
   };
 
   const handleDelete = async (imageId) => {
-    if (!confirm("Are you sure you want to delete this image?")) return;
+    // Find image and product for display information
+    const image = images.find((img) => img.image_id === imageId);
+    const product = products.find((p) => p.product_id === image?.product_id);
+
+    // SweetAlert konfirmasi sebelum hapus gambar
+    const result = await Swal.fire({
+      icon: "warning",
+      title: "Hapus Gambar Produk",
+      text: "Apakah Anda yakin ingin menghapus gambar produk ini?",
+      html: `
+        <div class="text-center">
+          <p><strong>Produk:</strong> ${product?.product_name || "Unknown"}</p>
+          <p><strong>URL:</strong> ${image?.image_path || "Unknown"}</p>
+          ${
+            image?.alt_text
+              ? `<p><strong>Alt Text:</strong> ${image.alt_text}</p>`
+              : ""
+          }
+          <div class="mt-3 mb-2">
+            <img src="${
+              image?.image_path
+            }" alt="Preview" style="max-width: 150px; max-height: 100px; margin: 0 auto; border-radius: 8px;" 
+                 onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'150\\' height=\\'100\\' viewBox=\\'0 0 150 100\\'%3E%3Crect width=\\'150\\' height=\\'100\\' fill=\\'%23f3f4f6\\'/%3E%3Ctext x=\\'75\\' y=\\'55\\' text-anchor=\\'middle\\' font-size=\\'14\\'%3EGambar tidak ditemukan%3C/text%3E%3C/svg%3E';">
+          </div>
+          <p class="text-sm text-gray-600 mt-2">Gambar yang sudah dihapus tidak dapat dikembalikan.</p>
+        </div>
+      `,
+      showCancelButton: true,
+      confirmButtonText: "Ya, Hapus Gambar",
+      cancelButtonText: "Batal",
+      confirmButtonColor: "#dc2626",
+      cancelButtonColor: "#6b7280",
+      reverseButtons: true,
+    });
+
+    if (!result.isConfirmed) {
+      return;
+    }
 
     const token = localStorage.getItem("token");
     try {
@@ -109,10 +211,32 @@ const ProductImages = () => {
       );
 
       if (response.ok) {
+        // SweetAlert sukses gambar dihapus
+        await Swal.fire({
+          icon: "success",
+          title: "Gambar Berhasil Dihapus!",
+          text: "Gambar produk telah berhasil dihapus dari sistem.",
+          confirmButtonText: "OK",
+          confirmButtonColor: "#cd0c0d",
+        });
+
         fetchImages();
+      } else {
+        throw new Error("Failed to delete image");
       }
     } catch (error) {
       console.error("Error deleting image:", error);
+
+      // SweetAlert error hapus gambar
+      Swal.fire({
+        icon: "error",
+        title: "Gagal Hapus Gambar",
+        text:
+          error.message ||
+          "Terjadi kesalahan saat menghapus gambar. Silakan coba lagi.",
+        confirmButtonText: "Coba Lagi",
+        confirmButtonColor: "#cd0c0d",
+      });
     }
   };
 

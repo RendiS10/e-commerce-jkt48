@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import Swal from "sweetalert2";
 import AdminLayout from "../../../components/admin/AdminLayout.jsx";
 import LoadingSpinner from "../../../components/atoms/LoadingSpinner.jsx";
 import ErrorDisplay from "../../../components/atoms/ErrorDisplay.jsx";
@@ -8,24 +9,100 @@ import { API_ENDPOINTS } from "../../../utils/api.js";
 const Categories = () => {
   const [showForm, setShowForm] = useState(false);
   const [editingCategory, setEditingCategory] = useState(null);
+  const [productCounts, setProductCounts] = useState({});
   const [formData, setFormData] = useState({
     category_name: "",
     slug: "",
     image_url: "",
   });
 
-  // Fetch data using custom hooks
+  // Fetch data using custom hooks - Modified to include product counts
   const {
     data: categories,
     loading,
     error,
     refetch: refetchCategories,
-  } = useFetch(API_ENDPOINTS.CATEGORIES);
+  } = useFetch("/categories?include=products");
 
   const { mutate, loading: mutating, error: mutationError } = useMutation();
 
+  // Fetch product counts for each category
+  useEffect(() => {
+    const fetchProductCounts = async () => {
+      if (categories && categories.length > 0) {
+        try {
+          const token = localStorage.getItem("token");
+          const counts = {};
+
+          // Fetch products and group by category
+          const response = await fetch("http://localhost:5000/api/products", {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+
+          if (response.ok) {
+            const products = await response.json();
+
+            // Count products for each category
+            categories.forEach((category) => {
+              counts[category.category_id] = products.filter(
+                (product) => product.category_id === category.category_id
+              ).length;
+            });
+
+            setProductCounts(counts);
+          }
+        } catch (error) {
+          console.error("Error fetching product counts:", error);
+        }
+      }
+    };
+
+    fetchProductCounts();
+  }, [categories]);
+
+  // Helper function to refresh data
+  const refreshData = () => {
+    refetchCategories();
+    // Trigger useEffect to refetch product counts
+    setTimeout(() => {
+      // This will be called after categories are updated
+    }, 100);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // SweetAlert konfirmasi sebelum menyimpan kategori
+    const result = await Swal.fire({
+      icon: "question",
+      title: editingCategory
+        ? "Konfirmasi Update Kategori"
+        : "Konfirmasi Tambah Kategori",
+      text: editingCategory
+        ? "Apakah Anda yakin ingin mengupdate kategori ini?"
+        : "Apakah Anda yakin ingin menambahkan kategori baru?",
+      html: `
+        <div class="text-left">
+          <p><strong>Nama Kategori:</strong> ${formData.category_name}</p>
+          <p><strong>Slug:</strong> ${formData.slug || "Auto-generated"}</p>
+          <p class="text-sm text-gray-600 mt-2">Pastikan semua data sudah benar sebelum melanjutkan.</p>
+        </div>
+      `,
+      showCancelButton: true,
+      confirmButtonText: editingCategory
+        ? "Ya, Update Kategori"
+        : "Ya, Tambah Kategori",
+      cancelButtonText: "Batal",
+      confirmButtonColor: "#cd0c0d",
+      cancelButtonColor: "#6b7280",
+      reverseButtons: true,
+    });
+
+    if (!result.isConfirmed) {
+      return; // User membatalkan
+    }
 
     try {
       await mutate(
@@ -46,7 +123,20 @@ const Categories = () => {
         },
         {
           onSuccess: () => {
-            refetchCategories();
+            // SweetAlert sukses kategori disimpan
+            Swal.fire({
+              icon: "success",
+              title: editingCategory
+                ? "Kategori Berhasil Diupdate!"
+                : "Kategori Berhasil Ditambahkan!",
+              text: editingCategory
+                ? "Kategori telah berhasil diupdate ke dalam sistem."
+                : "Kategori baru telah berhasil ditambahkan ke dalam sistem.",
+              confirmButtonText: "OK",
+              confirmButtonColor: "#cd0c0d",
+            });
+
+            refreshData();
             setShowForm(false);
             setEditingCategory(null);
             setFormData({ category_name: "", slug: "", image_url: "" });
@@ -58,6 +148,19 @@ const Categories = () => {
       );
     } catch (error) {
       console.error("Error saving category:", error);
+
+      // SweetAlert error menyimpan kategori
+      Swal.fire({
+        icon: "error",
+        title: editingCategory
+          ? "Gagal Update Kategori"
+          : "Gagal Tambah Kategori",
+        text:
+          error.message ||
+          "Terjadi kesalahan saat menyimpan kategori. Silakan coba lagi.",
+        confirmButtonText: "Coba Lagi",
+        confirmButtonColor: "#cd0c0d",
+      });
     }
   };
 
@@ -72,7 +175,38 @@ const Categories = () => {
   };
 
   const handleDelete = async (categoryId) => {
-    if (!confirm("Are you sure you want to delete this category?")) return;
+    // Cari kategori untuk mendapatkan informasi produk
+    const category = categories.find((cat) => cat.category_id === categoryId);
+    const productCount = productCounts[categoryId] || 0;
+
+    // SweetAlert konfirmasi sebelum hapus kategori
+    const result = await Swal.fire({
+      icon: "warning",
+      title: "Hapus Kategori",
+      text: "Apakah Anda yakin ingin menghapus kategori ini?",
+      html: `
+        <div class="text-center">
+          <p><strong>Kategori:</strong> ${category?.category_name}</p>
+          <p><strong>Jumlah Produk:</strong> ${productCount} produk</p>
+          ${
+            productCount > 0
+              ? '<p class="text-red-600 text-sm mt-2">⚠️ Menghapus kategori ini akan mempengaruhi produk yang menggunakan kategori tersebut.</p>'
+              : '<p class="text-gray-600 text-sm mt-2">Kategori ini tidak memiliki produk.</p>'
+          }
+          <p class="text-sm text-gray-600 mt-2">Kategori yang sudah dihapus tidak dapat dikembalikan.</p>
+        </div>
+      `,
+      showCancelButton: true,
+      confirmButtonText: "Ya, Hapus Kategori",
+      cancelButtonText: "Batal",
+      confirmButtonColor: "#dc2626",
+      cancelButtonColor: "#6b7280",
+      reverseButtons: true,
+    });
+
+    if (!result.isConfirmed) {
+      return;
+    }
 
     try {
       await mutate(
@@ -88,12 +222,34 @@ const Categories = () => {
           );
         },
         {
-          onSuccess: () => refetchCategories(),
+          onSuccess: () => {
+            // SweetAlert sukses kategori dihapus
+            Swal.fire({
+              icon: "success",
+              title: "Kategori Berhasil Dihapus!",
+              text: "Kategori telah berhasil dihapus dari sistem.",
+              confirmButtonText: "OK",
+              confirmButtonColor: "#cd0c0d",
+            });
+
+            refreshData();
+          },
           successMessage: "Category deleted successfully!",
         }
       );
     } catch (error) {
       console.error("Error deleting category:", error);
+
+      // SweetAlert error hapus kategori
+      Swal.fire({
+        icon: "error",
+        title: "Gagal Hapus Kategori",
+        text:
+          error.message ||
+          "Terjadi kesalahan saat menghapus kategori. Silakan coba lagi.",
+        confirmButtonText: "Coba Lagi",
+        confirmButtonColor: "#cd0c0d",
+      });
     }
   };
 
@@ -248,7 +404,15 @@ const Categories = () => {
                     {category.slug}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {category.Products?.length || 0}
+                    <span
+                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        (productCounts[category.category_id] || 0) > 0
+                          ? "bg-green-100 text-green-800"
+                          : "bg-gray-100 text-gray-800"
+                      }`}
+                    >
+                      {productCounts[category.category_id] || 0} produk
+                    </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
                     <button
