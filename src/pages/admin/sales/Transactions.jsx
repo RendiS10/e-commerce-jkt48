@@ -8,11 +8,15 @@ const Transactions = () => {
     totalRevenue: 0,
     todayRevenue: 0,
     monthlyRevenue: 0,
+    yearlyRevenue: 0,
     transactionCount: 0,
+    totalOrders: 0,
+    totalProductsSold: 0,
   });
 
   useEffect(() => {
     fetchTransactions();
+    fetchStats();
   }, []);
 
   const fetchTransactions = async () => {
@@ -26,7 +30,6 @@ const Transactions = () => {
       if (response.ok) {
         const data = await response.json();
         setTransactions(data);
-        calculateStats(data);
       }
     } catch (error) {
       console.error("Error fetching transactions:", error);
@@ -35,58 +38,49 @@ const Transactions = () => {
     }
   };
 
-  const calculateStats = (transactionData) => {
-    const now = new Date();
-    const today = now.toDateString();
-    const currentMonth = now.getMonth();
-    const currentYear = now.getFullYear();
-
-    const totalRevenue = transactionData.reduce(
-      (sum, transaction) => sum + parseFloat(transaction.amount || 0),
-      0
-    );
-
-    const todayRevenue = transactionData
-      .filter(
-        (transaction) =>
-          new Date(transaction.transaction_date).toDateString() === today
-      )
-      .reduce(
-        (sum, transaction) => sum + parseFloat(transaction.amount || 0),
-        0
+  const fetchStats = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        "http://localhost:5000/api/transactions/stats",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
+      if (response.ok) {
+        const data = await response.json();
+        setStats(data);
+      }
+    } catch (error) {
+      console.error("Error fetching stats:", error);
+    }
+  };
 
-    const monthlyRevenue = transactionData
-      .filter((transaction) => {
-        const transDate = new Date(transaction.transaction_date);
-        return (
-          transDate.getMonth() === currentMonth &&
-          transDate.getFullYear() === currentYear
-        );
-      })
-      .reduce(
-        (sum, transaction) => sum + parseFloat(transaction.amount || 0),
-        0
-      );
-
-    setStats({
-      totalRevenue,
-      todayRevenue,
-      monthlyRevenue,
-      transactionCount: transactionData.length,
-    });
+  const formatRupiah = (amount) => {
+    if (!amount || isNaN(amount)) return "Rp0";
+    return "Rp" + amount.toLocaleString("id-ID");
   };
 
   const getStatusColor = (status) => {
     switch (status) {
-      case "success":
+      case "Selesai":
+      case "completed":
         return "bg-green-100 text-green-800";
-      case "pending":
-        return "bg-yellow-100 text-yellow-800";
-      case "failed":
-        return "bg-red-100 text-red-800";
-      case "refunded":
+      case "Dikirim":
+      case "delivered":
         return "bg-blue-100 text-blue-800";
+      case "Akan Dikirimkan":
+      case "processing":
+        return "bg-yellow-100 text-yellow-800";
+      case "Menunggu Konfirmasi":
+      case "Disetujui":
+      case "pending":
+        return "bg-orange-100 text-orange-800";
+      case "Dibatalkan":
+      case "cancelled":
+        return "bg-red-100 text-red-800";
       default:
         return "bg-gray-100 text-gray-800";
     }
@@ -95,7 +89,7 @@ const Transactions = () => {
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString("id-ID", {
       year: "numeric",
-      month: "long",
+      month: "short",
       day: "numeric",
       hour: "2-digit",
       minute: "2-digit",
@@ -117,10 +111,10 @@ const Transactions = () => {
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <h1 className="text-3xl font-bold text-gray-900">
-            Transactions Management
+            Sales Report & Transactions
           </h1>
           <div className="text-sm text-gray-500">
-            Total Transactions: {stats.transactionCount}
+            Total Sales: {stats.transactionCount} items
           </div>
         </div>
 
@@ -129,15 +123,13 @@ const Transactions = () => {
           <div className="bg-white p-4 rounded-lg shadow border-l-4 border-green-500">
             <h3 className="text-sm font-medium text-gray-600">Total Revenue</h3>
             <p className="text-2xl font-bold text-green-600">
-              Rp {stats.totalRevenue.toLocaleString("id-ID")}
+              {formatRupiah(stats.totalRevenue)}
             </p>
           </div>
           <div className="bg-white p-4 rounded-lg shadow border-l-4 border-blue-500">
-            <h3 className="text-sm font-medium text-gray-600">
-              Today's Revenue
-            </h3>
+            <h3 className="text-sm font-medium text-gray-600">Today Revenue</h3>
             <p className="text-2xl font-bold text-blue-600">
-              Rp {stats.todayRevenue.toLocaleString("id-ID")}
+              {formatRupiah(stats.todayRevenue)}
             </p>
           </div>
           <div className="bg-white p-4 rounded-lg shadow border-l-4 border-purple-500">
@@ -145,34 +137,47 @@ const Transactions = () => {
               Monthly Revenue
             </h3>
             <p className="text-2xl font-bold text-purple-600">
-              Rp {stats.monthlyRevenue.toLocaleString("id-ID")}
+              {formatRupiah(stats.monthlyRevenue)}
             </p>
           </div>
-          <div className="bg-white p-4 rounded-lg shadow border-l-4 border-yellow-500">
-            <h3 className="text-sm font-medium text-gray-600">
-              Total Transactions
-            </h3>
-            <p className="text-2xl font-bold text-yellow-600">
-              {stats.transactionCount}
+          <div className="bg-white p-4 rounded-lg shadow border-l-4 border-orange-500">
+            <h3 className="text-sm font-medium text-gray-600">Products Sold</h3>
+            <p className="text-2xl font-bold text-orange-600">
+              {stats.totalProductsSold || 0}
             </p>
           </div>
         </div>
 
-        {/* Transaction Status Summary */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          {["success", "pending", "failed", "refunded"].map((status) => {
-            const count = transactions.filter(
-              (transaction) => transaction.transaction_status === status
-            ).length;
-            return (
-              <div key={status} className="bg-white p-4 rounded-lg shadow">
-                <h3 className="text-sm font-medium text-gray-600 capitalize">
-                  {status} Transactions
-                </h3>
-                <p className="text-xl font-bold text-gray-900">{count}</p>
-              </div>
-            );
-          })}
+        {/* Additional Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="bg-white p-4 rounded-lg shadow border-l-4 border-indigo-500">
+            <h3 className="text-sm font-medium text-gray-600">
+              Yearly Revenue
+            </h3>
+            <p className="text-xl font-bold text-indigo-600">
+              {formatRupiah(stats.yearlyRevenue)}
+            </p>
+          </div>
+          <div className="bg-white p-4 rounded-lg shadow border-l-4 border-pink-500">
+            <h3 className="text-sm font-medium text-gray-600">
+              Completed Orders
+            </h3>
+            <p className="text-xl font-bold text-pink-600">
+              {stats.totalOrders || 0}
+            </p>
+          </div>
+          <div className="bg-white p-4 rounded-lg shadow border-l-4 border-cyan-500">
+            <h3 className="text-sm font-medium text-gray-600">
+              Average Order Value
+            </h3>
+            <p className="text-xl font-bold text-cyan-600">
+              {formatRupiah(
+                stats.totalOrders > 0
+                  ? stats.totalRevenue / stats.totalOrders
+                  : 0
+              )}
+            </p>
+          </div>
         </div>
 
         {/* Transactions Table */}
@@ -182,19 +187,19 @@ const Transactions = () => {
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Transaction ID
+                    Order Details
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Order ID
+                    Product
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    User
+                    Customer
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Amount
+                    Quantity
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Payment Method
+                    Revenue
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Status
@@ -205,59 +210,86 @@ const Transactions = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {transactions.length > 0 ? (
-                  transactions.map((transaction) => (
-                    <tr
-                      key={transaction.transaction_id}
-                      className="hover:bg-gray-50"
-                    >
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        #{transaction.transaction_id}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        #{transaction.order_id}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {transaction.User?.full_name || "N/A"}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        Rp{" "}
-                        {parseFloat(transaction.amount || 0).toLocaleString(
-                          "id-ID"
-                        )}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        <span className="uppercase font-medium">
-                          {transaction.Order?.payment_method || "N/A"}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span
-                          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(
-                            transaction.transaction_status
-                          )}`}
-                        >
-                          {transaction.transaction_status}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {formatDate(transaction.transaction_date)}
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td
-                      colSpan="7"
-                      className="px-6 py-4 text-center text-gray-500"
-                    >
-                      No transactions found
+                {transactions.map((transaction) => (
+                  <tr
+                    key={transaction.transaction_id}
+                    className="hover:bg-gray-50"
+                  >
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-900">
+                        #{transaction.tracking_number}
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        Order ID: {transaction.order_id}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-sm font-medium text-gray-900">
+                        {transaction.product_name}
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        {formatRupiah(transaction.product_price)} per item
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-sm font-medium text-gray-900">
+                        {transaction.customer_name}
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        {transaction.customer_email}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {transaction.quantity}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-900">
+                        {formatRupiah(transaction.revenue)}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span
+                        className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(
+                          transaction.order_status
+                        )}`}
+                      >
+                        {transaction.order_status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {formatDate(transaction.transaction_date)}
                     </td>
                   </tr>
-                )}
+                ))}
               </tbody>
             </table>
           </div>
+
+          {transactions.length === 0 && (
+            <div className="text-center py-12">
+              <div className="text-gray-500 mb-4">
+                <svg
+                  className="mx-auto h-12 w-12"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                  />
+                </svg>
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                No sales data found
+              </h3>
+              <p className="text-gray-500">
+                Complete some orders to see transaction data here.
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </AdminLayout>

@@ -24,7 +24,6 @@ import AdminOrders from "./pages/admin/sales/Orders.jsx";
 import Payments from "./pages/admin/sales/Payments.jsx";
 import Users from "./pages/admin/users/Users.jsx";
 import Reviews from "./pages/admin/users/Reviews.jsx";
-import Complaints from "./pages/admin/users/Complaints.jsx";
 import Messages from "./pages/admin/communication/Messages.jsx";
 import Transactions from "./pages/admin/sales/Transactions.jsx";
 import AdminChat from "./pages/admin/communication/Chat.jsx";
@@ -222,10 +221,6 @@ const router = createBrowserRouter([
   {
     path: "/admin/reviews",
     element: <Reviews />,
-  },
-  {
-    path: "/admin/complaints",
-    element: <Complaints />,
   },
   {
     path: "/admin/messages",

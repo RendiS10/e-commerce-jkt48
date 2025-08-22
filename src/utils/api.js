@@ -128,9 +128,6 @@ export const API_ENDPOINTS = {
   // Reviews
   REVIEWS: "/reviews",
 
-  // Complaints
-  COMPLAINTS: "/complaints",
-
   // News
   NEWS: "/news",
 

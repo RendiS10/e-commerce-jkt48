@@ -6,7 +6,6 @@ const SidebarWithNotifications = () => {
   const [notifications, setNotifications] = useState({
     pendingOrders: 0,
     pendingPayments: 0,
-    totalComplaints: 0,
     unreadMessages: 0,
   });
 
@@ -39,8 +38,7 @@ const SidebarWithNotifications = () => {
         }));
       }
 
-      // TODO: Bisa ditambahkan untuk complaints dan messages
-      // const complaintsRes = await fetch("http://localhost:5000/api/complaints", { headers });
+      // TODO: Bisa ditambahkan untuk messages
       // const messagesRes = await fetch("http://localhost:5000/api/messages", { headers });
     } catch (error) {
       console.error("Error fetching notification counts:", error);
@@ -109,13 +107,6 @@ const SidebarWithNotifications = () => {
       path: "/admin/reviews",
       icon: "⭐",
       badge: 0,
-    },
-    {
-      name: "Complaints",
-      path: "/admin/complaints",
-      icon: "📢",
-      badge: notifications.totalComplaints,
-      badgeColor: "bg-yellow-500",
     },
     {
       name: "Messages",

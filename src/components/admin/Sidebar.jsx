@@ -56,11 +56,6 @@ const Sidebar = () => {
       icon: "⭐",
     },
     {
-      name: "Complaints",
-      path: "/admin/complaints",
-      icon: "📢",
-    },
-    {
       name: "Messages",
       path: "/admin/messages",
       icon: "💬",
