@@ -632,6 +632,29 @@ function Orders() {
 
   // Submit review
   const handleSubmitReviews = async () => {
+    // SweetAlert konfirmasi sebelum submit review
+    const result = await Swal.fire({
+      icon: "question",
+      title: "Konfirmasi Kirim Review",
+      text: "Apakah Anda yakin ingin mengirim review ini?",
+      html: `
+        <div class="text-left">
+          <p>Review yang telah dikirim tidak dapat diubah lagi.</p>
+          <p class="text-sm text-gray-600 mt-2">Pastikan rating dan komentar sudah sesuai dengan pengalaman Anda.</p>
+        </div>
+      `,
+      showCancelButton: true,
+      confirmButtonText: "Ya, Kirim Review",
+      cancelButtonText: "Batal",
+      confirmButtonColor: "#cd0c0d",
+      cancelButtonColor: "#6b7280",
+      reverseButtons: true,
+    });
+
+    if (!result.isConfirmed) {
+      return; // User membatalkan
+    }
+
     try {
       const token = localStorage.getItem("token");
       const reviewPromises = [];
