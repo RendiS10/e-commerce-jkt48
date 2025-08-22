@@ -2,6 +2,7 @@ import React, { useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { UserContext } from "../../main.jsx";
 import Sidebar from "./Sidebar.jsx";
+import NotificationBanner from "./NotificationBanner.jsx";
 
 const AdminLayout = ({ children }) => {
   const context = useContext(UserContext);
@@ -163,6 +164,9 @@ const AdminLayout = ({ children }) => {
               </div>
             </div>
           </nav>
+
+          {/* Notification Banner - Global untuk semua halaman admin */}
+          <NotificationBanner />
 
           {/* Page Content */}
           <main className="flex-1 overflow-y-auto">

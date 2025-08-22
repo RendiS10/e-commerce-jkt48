@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { UserContext } from "../../main.jsx";
 import Sidebar from "./Sidebar.jsx";
+import NotificationBanner from "./NotificationBanner.jsx";
 
 const AdminLayout = ({ children }) => {
   const { user, setUser, refreshUserAndCart, loading } =
@@ -140,6 +141,9 @@ const AdminLayout = ({ children }) => {
               </div>
             </div>
           </header>
+
+          {/* Notification Banner - Global untuk semua halaman admin */}
+          <NotificationBanner />
 
           {/* Main Content */}
           <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100">

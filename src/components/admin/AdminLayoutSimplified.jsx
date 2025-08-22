@@ -2,6 +2,7 @@ import React from "react";
 import { useAdminAuth } from "../../hooks/useAdminAuth.js";
 import Sidebar from "./Sidebar.jsx";
 import LoadingSpinner from "../atoms/LoadingSpinner.jsx";
+import NotificationBanner from "./NotificationBanner.jsx";
 
 /**
  * Simplified Admin Layout using custom auth hook
@@ -38,6 +39,10 @@ const AdminLayoutSimplified = ({ children }) => {
               </button>
             </div>
           </div>
+
+          {/* Notification Banner - Global untuk semua halaman admin */}
+          <NotificationBanner />
+
           {children}
         </main>
       </div>
