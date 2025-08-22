@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext } from "react";
+import Swal from "sweetalert2";
 import { UserContext } from "../../../main.jsx";
 import AdminLayout from "../../../components/admin/AdminLayout.jsx";
 
@@ -36,6 +37,52 @@ const Reviews = () => {
 
   const handleSubmitReply = async (e) => {
     e.preventDefault();
+
+    // Validasi input
+    if (!replyText.trim()) {
+      Swal.fire({
+        icon: "warning",
+        title: "Balasan Kosong",
+        text: "Mohon tulis balasan sebelum mengirim.",
+        confirmButtonText: "OK",
+        confirmButtonColor: "#cd0c0d",
+      });
+      return;
+    }
+
+    // SweetAlert konfirmasi sebelum mengirim balasan
+    const result = await Swal.fire({
+      icon: "question",
+      title: "Konfirmasi Balasan",
+      text: "Apakah Anda yakin ingin mengirim balasan ini?",
+      html: `
+        <div class="text-left">
+          <p><strong>Produk:</strong> ${
+            replyingToReview?.Product?.product_name || "N/A"
+          }</p>
+          <p><strong>Pelanggan:</strong> ${
+            replyingToReview?.User?.full_name || "N/A"
+          }</p>
+          <p><strong>Rating:</strong> ${getStarRating(
+            replyingToReview?.rating
+          )}</p>
+          <p><strong>Balasan Anda:</strong></p>
+          <div class="bg-gray-100 p-2 rounded text-sm mt-1">${replyText}</div>
+          <p class="text-sm text-gray-600 mt-2">Balasan ini akan terlihat oleh pelanggan dan pengunjung lainnya.</p>
+        </div>
+      `,
+      showCancelButton: true,
+      confirmButtonText: "Ya, Kirim Balasan",
+      cancelButtonText: "Batal",
+      confirmButtonColor: "#cd0c0d",
+      cancelButtonColor: "#6b7280",
+      reverseButtons: true,
+    });
+
+    if (!result.isConfirmed) {
+      return; // User membatalkan
+    }
+
     const token = localStorage.getItem("token");
 
     try {
@@ -52,13 +99,36 @@ const Reviews = () => {
       );
 
       if (response.ok) {
+        // SweetAlert sukses balasan terkirim
+        await Swal.fire({
+          icon: "success",
+          title: "Balasan Berhasil Dikirim!",
+          text: "Balasan Anda telah berhasil disimpan dan akan terlihat di halaman review.",
+          confirmButtonText: "OK",
+          confirmButtonColor: "#cd0c0d",
+        });
+
         fetchReviews();
         setShowReplyForm(false);
         setReplyingToReview(null);
         setReplyText("");
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to send reply");
       }
     } catch (error) {
       console.error("Error saving reply:", error);
+
+      // SweetAlert error balasan gagal
+      Swal.fire({
+        icon: "error",
+        title: "Gagal Mengirim Balasan",
+        text:
+          error.message ||
+          "Terjadi kesalahan saat mengirim balasan. Silakan coba lagi.",
+        confirmButtonText: "Coba Lagi",
+        confirmButtonColor: "#cd0c0d",
+      });
     }
   };
 
