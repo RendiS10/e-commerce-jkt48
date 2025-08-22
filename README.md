@@ -1,101 +1,121 @@
-# 🎌 JKT48 E-Commerce Backend API
+# 🛍️ JKT48 E-Commerce Frontend
 
-[![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg)](https://nodejs.org)
-[![Express.js](https://img.shields.io/badge/Express.js-5.1.0-blue.svg)](https://expressjs.com)
-[![MySQL](https://img.shields.io/badge/MySQL-8.0+-blue.svg)](https://mysql.com)
-[![Socket.IO](https://img.shields.io/badge/Socket.IO-4.8.1-red.svg)](https://socket.io)
+[![React](https://img.shields.io/badge/React-19.1.0-blue.svg)](https://reactjs.org)
+[![Vite](https://img.shields.io/badge/Vite-7.0.4-646CFF.svg)](https://vitejs.dev)
+[![TailwindCSS](https://img.shields.io/badge/TailwindCSS-4.1.11-38B2AC.svg)](https://tailwindcss.com)
+[![React Router](https://img.shields.io/badge/React_Router-7.7.1-CA4245.svg)](https://reactrouter.com)
 
-Backend RESTful API untuk sistem e-commerce JKT48 merchandise yang dibangun dengan Express.js, Sequelize ORM, MySQL, dan Socket.IO untuk fitur real-time chat.
+Frontend aplikasi e-commerce JKT48 merchandise yang dibangun dengan React 19, Vite, TailwindCSS, dan Socket.IO untuk fitur real-time. Aplikasi ini menyediakan interface yang modern dan responsif untuk customer dan admin dashboard.
 
 ## 📋 Daftar Isi
 
-- [🚀 Fitur Utama](#-fitur-utama)
+- [✨ Fitur Utama](#-fitur-utama)
 - [🛠️ Tech Stack](#️-tech-stack)
 - [📁 Struktur Project](#-struktur-project)
 - [⚙️ Installation](#️-installation)
 - [🔧 Configuration](#-configuration)
 - [🏃‍♂️ Running the Application](#️-running-the-application)
-- [📚 API Documentation](#-api-documentation)
-- [🗄️ Database Schema](#️-database-schema)
-- [🔐 Authentication & Authorization](#-authentication--authorization)
-- [💬 Real-time Features](#-real-time-features)
+- [📱 Pages & Components](#-pages--components)
+- [🎨 UI Components](#-ui-components)
+- [🔐 Authentication Flow](#-authentication-flow)
+- [🛒 Shopping Features](#-shopping-features)
+- [👨‍💼 Admin Features](#-admin-features)
+- [📡 API Integration](#-api-integration)
+- [🎯 Features Overview](#-features-overview)
 - [🚀 Deployment](#-deployment)
 - [🤝 Contributing](#-contributing)
 
-## 🚀 Fitur Utama
+## ✨ Fitur Utama
+
+### 🛍️ Customer Features
+
+- ✅ **Product Catalog** - Browse merchandise JKT48 dengan filter dan search
+- ✅ **Product Details** - Detail produk dengan gambar, deskripsi, dan review
+- ✅ **Shopping Cart** - Keranjang belanja dengan quantity management
+- ✅ **Checkout Process** - Proses pemesanan dengan alamat pengiriman
+- ✅ **Payment System** - Upload bukti transfer dan tracking pembayaran
+- ✅ **Order Management** - History pesanan dan tracking status
+- ✅ **Order Tracking** - Lacak pesanan dengan nomor resi
+- ✅ **Review System** - Beri rating dan review produk
+- ✅ **User Profile** - Manajemen profil dan alamat
+- ✅ **Live Chat** - Chat real-time dengan admin
+- ✅ **Responsive Design** - Mobile-first dan desktop friendly
 
 ### 👨‍💼 Admin Features
 
-- ✅ **Product Management** - CRUD produk dengan kategori, varian, dan gambar
-- ✅ **Order Management** - Kelola pesanan dan status pengiriman
-- ✅ **Payment Verification** - Approve/reject pembayaran transfer
+- ✅ **Dashboard Analytics** - Statistik penjualan dan overview
+- ✅ **Product Management** - CRUD produk dengan upload gambar
+- ✅ **Category Management** - Kelola kategori produk
+- ✅ **Order Management** - Kelola pesanan dan update status
+- ✅ **Payment Verification** - Approve/reject pembayaran customer
+- ✅ **User Management** - Kelola data customer
 - ✅ **Real-time Notifications** - Notifikasi pesanan dan pembayaran baru
-- ✅ **Live Chat** - Chat real-time dengan customer
-- ✅ **Analytics Dashboard** - Statistik penjualan dan revenue
-
-### 👥 Customer Features
-
-- ✅ **Authentication** - Register, login, dan manajemen profil
-- ✅ **Product Catalog** - Browse produk dengan filter kategori
-- ✅ **Shopping Cart** - Tambah, edit, hapus item keranjang
-- ✅ **Checkout System** - Proses pemesanan dengan alamat pengiriman
-- ✅ **Payment System** - Upload bukti transfer dan konfirmasi
-- ✅ **Order Tracking** - Lacak status pesanan dengan nomor resi
-- ✅ **Review System** - Beri rating dan review produk
-- ✅ **Live Chat** - Chat dengan admin untuk bantuan
+- ✅ **Live Chat Support** - Chat dengan customer
+- ✅ **Reports & Analytics** - Laporan penjualan dan statistik
 
 ## 🛠️ Tech Stack
 
-- **Runtime:** Node.js 18+
-- **Framework:** Express.js 5.1.0
-- **Database:** MySQL 8.0+
-- **ORM:** Sequelize 6.37.7
-- **Authentication:** JWT (jsonwebtoken)
-- **Real-time:** Socket.IO 4.8.1
-- **Security:** Helmet, bcryptjs
-- **Validation:** express-validator
-- **File Upload:** Multer
-- **Logging:** Morgan
-- **Environment:** dotenv
+### Core Technologies
+
+- **React 19.1.0** - UI Library dengan Concurrent Features
+- **Vite 7.0.4** - Build tool dan dev server yang super cepat
+- **TailwindCSS 4.1.11** - Utility-first CSS framework
+- **React Router DOM 7.7.1** - Client-side routing
+
+### UI & Styling
+
+- **FontAwesome** - Icon library yang komprehensif
+- **React Icons** - Popular icon library untuk React
+- **SweetAlert2** - Beautiful alert dan notification
+- **Custom CSS** - Styling tambahan dan animasi
+
+### Real-time & Communication
+
+- **Socket.IO Client** - Real-time communication untuk chat dan notifications
+
+### Development Tools
+
+- **ESLint** - Code linting dan quality control
+- **Vite Plugin React** - React support untuk Vite
+- **TypeScript Types** - Type definitions untuk development
 
 ## 📁 Struktur Project
 
 ```
-backend/
-├── 📁 config/          # Konfigurasi database dan environment
-│   └── database.js     # Koneksi Sequelize ke MySQL
-├── 📁 controllers/     # Business logic dan handler endpoint
-│   ├── authController.js
-│   ├── productController.js
-│   ├── orderController.js
-│   ├── paymentController.js
-│   ├── cartController.js
-│   ├── categoryController.js
-│   ├── reviewController.js
-│   ├── messageController.js
-│   └── userController.js
-├── 📁 middlewares/     # Custom middleware functions
-│   ├── auth.js         # JWT authentication & authorization
-│   └── upload.js       # File upload configuration
-├── 📁 models/          # Database models (Sequelize)
-│   ├── index.js        # Model associations
-│   ├── user.js
-│   ├── product.js
-│   ├── order.js
-│   ├── payment.js
-│   ├── cart.js
-│   └── ...
-├── 📁 routes/          # API route definitions
-│   ├── authRoutes.js
-│   ├── productRoutes.js
-│   ├── orderRoutes.js
-│   ├── paymentRoutes.js
-│   └── ...
-├── 📄 app.js           # Main application entry point
-├── 📄 package.json     # Dependencies dan scripts
-├── 📄 .env             # Environment variables (tidak di-commit)
-├── 📄 .gitignore       # Files/folders yang diabaikan Git
-└── 📄 README.md        # Dokumentasi project
+e-commerce-jkt48/
+├── 📁 public/             # Static assets
+│   ├── 📁 images/         # Image assets
+│   │   ├── categories/    # Category images
+│   │   └── hero/          # Hero section images
+│   └── vite.svg          # Vite logo
+├── 📁 src/               # Source code
+│   ├── 📁 assets/        # React assets
+│   │   └── react.svg     # React logo
+│   ├── 📁 components/    # Reusable components
+│   │   ├── 📁 admin/     # Admin-specific components
+│   │   ├── 📁 atoms/     # Atomic design - smallest components
+│   │   ├── 📁 Elements/  # Basic UI elements
+│   │   ├── 📁 Fragments/ # Fragment components
+│   │   ├── 📁 Layouts/   # Layout components
+│   │   ├── 📁 molecules/ # Molecular design - combined atoms
+│   │   └── 📁 organisms/ # Organism design - complex components
+│   ├── 📁 hooks/         # Custom React hooks
+│   ├── 📁 pages/         # Page components
+│   │   ├── 📁 account/   # Account management pages
+│   │   ├── 📁 admin/     # Admin dashboard pages
+│   │   ├── 📁 auth/      # Authentication pages
+│   │   ├── 📁 checkout/  # Checkout process pages
+│   │   ├── 📁 common/    # Common pages (Home, About, etc.)
+│   │   └── 📁 shop/      # Shopping pages
+│   ├── 📁 utils/         # Utility functions
+│   ├── 📄 main.jsx       # Application entry point
+│   └── 📄 style.css      # Global styles
+├── 📄 package.json       # Dependencies dan scripts
+├── 📄 vite.config.js     # Vite configuration
+├── 📄 tailwind.config.js # TailwindCSS configuration
+├── 📄 eslint.config.js   # ESLint configuration
+├── 📄 index.html         # HTML template
+└── 📄 README.md          # Dokumentasi project
 ```
 
 ## ⚙️ Installation
@@ -103,32 +123,30 @@ backend/
 ### Prerequisites
 
 - Node.js 18+ ([Download](https://nodejs.org))
-- MySQL 8.0+ ([Download](https://dev.mysql.com/downloads/mysql/) atau gunakan [Laragon](https://laragon.org))
+- npm atau pnpm
 - Git ([Download](https://git-scm.com))
+- Backend API running pada `http://localhost:5000`
 
 ### Steps
 
 1. **Clone repository:**
 
 ```bash
-git clone https://github.com/RendiS10/backend-ecommerce.git
-cd backend-ecommerce
+git clone https://github.com/RendiS10/e-commerce-jkt48.git
+cd e-commerce-jkt48
 ```
 
 2. **Install dependencies:**
 
 ```bash
+# Menggunakan npm
 npm install
+
+# Atau menggunakan pnpm (recommended)
+pnpm install
 ```
 
-3. **Setup database:**
-
-```sql
--- Buat database di MySQL
-CREATE DATABASE jkt48_merchandise_db;
-```
-
-4. **Setup environment variables:**
+3. **Setup environment variables:**
 
 ```bash
 # Copy file .env.example ke .env
@@ -140,778 +158,416 @@ cp .env.example .env
 Buat file `.env` di root folder dengan konfigurasi berikut:
 
 ```env
-# Database Configuration
-DB_HOST=localhost
-DB_PORT=3306
-DB_NAME=jkt48_merchandise_db
-DB_USER=root
-DB_PASSWORD=
+# API Configuration
+VITE_API_BASE_URL=http://localhost:5000/api
+VITE_SOCKET_URL=http://localhost:5000
 
-# JWT Configuration
-JWT_SECRET=your_super_secret_jwt_key_here_make_it_long_and_random
-JWT_EXPIRES_IN=7d
+# App Configuration
+VITE_APP_NAME=JKT48 E-Commerce
+VITE_APP_VERSION=1.0.0
 
-# Server Configuration
-PORT=5000
-NODE_ENV=development
+# Environment
+VITE_NODE_ENV=development
 
-# CORS Configuration
-FRONTEND_URL=http://localhost:5173
-
-# Email Configuration (Optional)
-EMAIL_HOST=smtp.gmail.com
-EMAIL_PORT=587
-EMAIL_USER=your-email@gmail.com
-EMAIL_PASS=your-app-password
+# External Services (Optional)
+VITE_GOOGLE_ANALYTICS_ID=your-ga-id
 ```
+
+### Vite Configuration
+
+File `vite.config.js` sudah dikonfigurasi untuk:
+
+- React plugin dengan Fast Refresh
+- TailwindCSS integration
+- Optimized build untuk production
+- Development server dengan HMR
+
+### TailwindCSS Configuration
+
+TailwindCSS dikonfigurasi untuk:
+
+- Custom color palette yang sesuai dengan branding JKT48
+- Responsive breakpoints
+- Custom animations dan transitions
+- Component dan utility classes
 
 ## 🏃‍♂️ Running the Application
 
 ### Development Mode
 
 ```bash
+# Menggunakan npm
 npm run dev
+
+# Atau menggunakan pnpm
+pnpm dev
 ```
 
-### Production Mode
+Aplikasi akan berjalan di: `http://localhost:5173`
+
+### Production Build
 
 ```bash
-npm start
+# Build untuk production
+npm run build
+
+# Preview production build
+npm run preview
 ```
 
-Server akan berjalan di: `http://localhost:5000`
+### Linting
 
-### Testing API
+```bash
+# Check kode dengan ESLint
+npm run lint
 
-Gunakan Postman atau tools serupa untuk testing endpoint.
-Base URL: `http://localhost:5000/api`
-
-## 📚 API Documentation
-
-### 🔐 Authentication Endpoints
-
-#### Register
-
-```http
-POST /api/auth/register
-Content-Type: application/json
-
-{
-  "full_name": "John Doe",
-  "email": "john@example.com",
-  "password": "password123",
-  "role": "customer"
-}
+# Fix ESLint issues otomatis
+npm run lint:fix
 ```
 
-#### Login
+## 📱 Pages & Components
 
-```http
-POST /api/auth/login
-Content-Type: application/json
+### Customer Pages
 
-{
-  "email": "john@example.com",
-  "password": "password123"
-}
-```
+#### Public Pages
 
-#### Get Profile
-
-```http
-GET /api/auth/me
-Authorization: Bearer {token}
-```
+- **Home** (`/`) - Landing page dengan hero section dan featured products
+- **Shop** (`/shop`) - Catalog produk dengan filter dan search
+- **Product Detail** (`/product/:id`) - Detail produk dengan review
+- **Login** (`/login`) - Halaman login customer
+- **Register** (`/register`) - Halaman registrasi customer
 
-#### Update Profile
+#### Protected Customer Pages
 
-```http
-PUT /api/auth/profile
-Authorization: Bearer {token}
-Content-Type: application/json
-
-{
-  "full_name": "John Doe Updated",
-  "phone_number": "081234567890",
-  "address": "Jl. Sudirman No. 123",
-  "city": "Jakarta",
-  "postal_code": "12345"
-}
-```
-
-### 📦 Product Endpoints
+- **Cart** (`/cart`) - Keranjang belanja
+- **Checkout** (`/checkout`) - Proses pemesanan
+- **Payment** (`/payment/:orderId`) - Upload bukti pembayaran
+- **Orders** (`/orders`) - History pesanan
+- **Order Detail** (`/orders/:id`) - Detail pesanan dengan tracking
+- **Profile** (`/profile`) - Manajemen profil user
+- **Chat** (`/chat`) - Live chat dengan admin
 
-#### Get All Products
+### Admin Pages
 
-```http
-GET /api/products
-```
+#### Admin Dashboard
 
-#### Get Product by ID
+- **Dashboard** (`/admin`) - Overview dan analytics
+- **Products** (`/admin/products`) - Management produk
+- **Categories** (`/admin/categories`) - Management kategori
+- **Orders** (`/admin/orders`) - Management pesanan
+- **Payments** (`/admin/payments`) - Verifikasi pembayaran
+- **Users** (`/admin/users`) - Management customer
+- **Chat** (`/admin/chat`) - Customer support chat
+- **Reports** (`/admin/reports`) - Laporan dan analytics
 
-```http
-GET /api/products/:id
-```
+## 🎨 UI Components
 
-#### Search Products
+### Atomic Design Structure
 
-```http
-GET /api/products/search?q=keyword&category=1&min_price=10000&max_price=500000
-```
+#### Atoms (Basic Elements)
 
-#### Create Product (Admin)
+- **Button** - Various button styles dan states
+- **Input** - Form input dengan validation
+- **Badge** - Status badges dan labels
+- **Avatar** - User profile images
+- **Spinner** - Loading indicators
 
-```http
-POST /api/products
-Authorization: Bearer {admin_token}
-Content-Type: application/json
+#### Molecules (Combined Atoms)
 
-{
-  "product_name": "JKT48 T-Shirt",
-  "description": "Official JKT48 merchandise",
-  "price": 150000,
-  "category_id": 1,
-  "stock": 100,
-  "image_url": "https://example.com/image.jpg"
-}
-```
+- **SearchBar** - Search input dengan icon
+- **ProductCard** - Product display card
+- **FormField** - Label + Input + Error message
+- **Notification** - Alert messages
+- **Pagination** - Page navigation
 
-#### Update Product (Admin)
+#### Organisms (Complex Components)
 
-```http
-PUT /api/products/:id
-Authorization: Bearer {admin_token}
-Content-Type: application/json
+- **Header** - Navigation dengan user menu
+- **Footer** - Site footer dengan links
+- **ProductGrid** - Grid layout untuk products
+- **CartSummary** - Cart total dan checkout
+- **OrderSummary** - Order details display
 
-{
-  "product_name": "JKT48 T-Shirt Updated",
-  "price": 175000,
-  "stock": 80
-}
-```
+#### Layouts
 
-#### Delete Product (Admin)
+- **MainLayout** - Layout untuk customer pages
+- **AdminLayout** - Layout untuk admin dashboard
+- **AuthLayout** - Layout untuk login/register
 
-```http
-DELETE /api/products/:id
-Authorization: Bearer {admin_token}
-```
+### Specialized Components
 
-### 📂 Category Endpoints
+#### Admin Components
 
-#### Get All Categories
+- **AdminSidebar** - Navigation sidebar untuk admin
+- **NotificationBanner** - Global notifications untuk admin
+- **DataTable** - Table dengan sorting dan filtering
+- **StatsCard** - Dashboard statistics display
+- **ChartComponent** - Analytics charts
 
-```http
-GET /api/categories
-```
+#### Customer Components
 
-#### Create Category (Admin)
+- **HeroSection** - Landing page hero
+- **CategoryGrid** - Product categories display
+- **ReviewList** - Product reviews
+- **ChatWidget** - Live chat interface
+- **OrderTracker** - Order status tracking
 
-```http
-POST /api/categories
-Authorization: Bearer {admin_token}
-Content-Type: application/json
+## 🔐 Authentication Flow
 
-{
-  "category_name": "T-Shirts",
-  "slug": "t-shirts",
-  "image_url": "https://example.com/category.jpg"
-}
-```
-
-#### Update Category (Admin)
-
-```http
-PUT /api/categories/:id
-Authorization: Bearer {admin_token}
-Content-Type: application/json
-
-{
-  "category_name": "T-Shirts Updated",
-  "slug": "t-shirts-updated"
-}
-```
-
-#### Delete Category (Admin)
-
-```http
-DELETE /api/categories/:id
-Authorization: Bearer {admin_token}
-```
-
-### 🛒 Cart Endpoints
-
-#### Get User Cart
-
-```http
-GET /api/cart
-Authorization: Bearer {token}
-```
-
-#### Add to Cart
-
-```http
-POST /api/cart
-Authorization: Bearer {token}
-Content-Type: application/json
-
-{
-  "product_id": 1,
-  "variant_id": 2,
-  "quantity": 2
-}
-```
-
-#### Update Cart Item
-
-```http
-PUT /api/cart/:cart_item_id
-Authorization: Bearer {token}
-Content-Type: application/json
-
-{
-  "quantity": 3
-}
-```
-
-#### Remove from Cart
-
-```http
-DELETE /api/cart/:cart_item_id
-Authorization: Bearer {token}
-```
-
-### 📋 Order Endpoints
-
-#### Get User Orders
+### Customer Authentication
 
-```http
-GET /api/orders
-Authorization: Bearer {token}
-```
-
-#### Get All Orders (Admin)
-
-```http
-GET /api/orders/all
-Authorization: Bearer {admin_token}
-```
-
-#### Create Order
-
-```http
-POST /api/orders
-Authorization: Bearer {token}
-Content-Type: application/json
-
-{
-  "shipping_address": {
-    "full_name": "John Doe",
-    "phone_number": "081234567890",
-    "address": "Jl. Sudirman No. 123",
-    "city": "Jakarta",
-    "postal_code": "12345"
-  },
-  "payment_method": "transfer",
-  "notes": "Tolong kirim cepat",
-  "cart_items": [
-    {
-      "product_id": 1,
-      "variant_id": 2,
-      "quantity": 2,
-      "price": 150000
-    }
-  ]
-}
-```
-
-#### Cancel Order
-
-```http
-PATCH /api/orders/:order_id/cancel
-Authorization: Bearer {token}
-```
-
-#### Confirm Order Received
-
-```http
-PATCH /api/orders/:order_id/confirm-received
-Authorization: Bearer {token}
-```
-
-#### Update Order Status (Admin)
-
-```http
-PATCH /api/orders/:order_id/status
-Authorization: Bearer {admin_token}
-Content-Type: application/json
-
-{
-  "order_status": "Dikirim",
-  "tracking_number": "JNE123456789"
-}
-```
-
-#### Get Pending Notifications (Admin)
-
-```http
-GET /api/orders/notifications
-Authorization: Bearer {admin_token}
-```
-
-### 💳 Payment Endpoints
-
-#### Get User Payments
-
-```http
-GET /api/payments
-Authorization: Bearer {token}
-```
-
-#### Get All Payments (Admin)
-
-```http
-GET /api/payments/all
-Authorization: Bearer {admin_token}
-```
-
-#### Get Payment by Order ID
+1. **Registration** - Form registrasi dengan validasi
+2. **Login** - Email/password authentication
+3. **Token Storage** - JWT token di localStorage
+4. **Auto Logout** - Token expiration handling
+5. **Protected Routes** - Route guards untuk customer pages
 
-```http
-GET /api/payments/order/:order_id
-Authorization: Bearer {token}
-```
-
-#### Confirm Payment
+### Admin Authentication
 
-```http
-PUT /api/payments/:payment_id/confirm
-Authorization: Bearer {token}
-Content-Type: application/json
+1. **Admin Login** - Separate login untuk admin
+2. **Role Verification** - Admin role checking
+3. **Session Management** - Admin session handling
+4. **Admin Routes** - Protected admin-only routes
 
-{
-  "bank_name": "BCA",
-  "account_number": "1234567890",
-  "account_name": "John Doe",
-  "payment_date": "2025-08-22T10:30:00Z",
-  "transfer_proof": "https://example.com/proof.jpg"
-}
-```
+### Authentication Features
 
-#### Approve Payment (Admin)
+- **Remember Me** - Persistent login
+- **Logout** - Clear session dan redirect
+- **Route Protection** - Automatic redirect untuk unauthorized access
+- **Token Refresh** - Automatic token renewal
 
-```http
-PUT /api/payments/:payment_id/approve
-Authorization: Bearer {admin_token}
-Content-Type: application/json
+## 🛒 Shopping Features
 
-{
-  "admin_notes": "Pembayaran valid dan telah diverifikasi"
-}
-```
+### Product Browsing
 
-#### Reject Payment (Admin)
+- **Product Catalog** - Grid/list view dengan pagination
+- **Category Filter** - Filter by kategori produk
+- **Price Filter** - Range slider untuk harga
+- **Search** - Real-time search dengan autocomplete
+- **Sorting** - Sort by price, name, popularity
 
-```http
-PUT /api/payments/:payment_id/reject
-Authorization: Bearer {admin_token}
-Content-Type: application/json
+### Shopping Cart
 
-{
-  "admin_notes": "Bukti transfer tidak valid"
-}
-```
+- **Add to Cart** - Tambah produk dengan quantity
+- **Update Quantity** - Increase/decrease quantity
+- **Remove Items** - Hapus item dari cart
+- **Cart Persistence** - Cart tersimpan di localStorage
+- **Cart Summary** - Total harga dan item count
 
-### ⭐ Review Endpoints
+### Checkout Process
 
-#### Get Product Reviews
+1. **Shipping Info** - Form alamat pengiriman
+2. **Order Review** - Review items dan total
+3. **Payment Method** - Pilih metode pembayaran
+4. **Order Confirmation** - Generate order dengan ID
+5. **Payment Upload** - Upload bukti transfer
 
-```http
-GET /api/reviews/:product_id
-```
+### Order Management
 
-#### Create Review
+- **Order History** - List semua pesanan user
+- **Order Status** - Real-time status tracking
+- **Order Details** - Detail items dan shipping
+- **Order Tracking** - Nomor resi dan status pengiriman
+- **Order Actions** - Cancel, confirm received
 
-```http
-POST /api/reviews
-Authorization: Bearer {token}
-Content-Type: application/json
+## 👨‍💼 Admin Features
 
-{
-  "order_id": 1,
-  "product_id": 1,
-  "rating": 5,
-  "comment": "Produk bagus dan sesuai ekspektasi!"
-}
-```
+### Dashboard Analytics
 
-#### Get Reviewable Products for Order
-
-```http
-GET /api/reviews/order/:order_id/reviewable
-Authorization: Bearer {token}
-```
-
-### 💬 Message Endpoints (Live Chat)
-
-#### Get Message History
-
-```http
-GET /api/messages
-Authorization: Bearer {token}
-```
-
-#### Get Chat Users (Admin)
-
-```http
-GET /api/messages/chat-users
-Authorization: Bearer {admin_token}
-```
-
-#### Send Message (HTTP Fallback)
-
-```http
-POST /api/messages
-Authorization: Bearer {token}
-Content-Type: application/json
-
-{
-  "message": "Halo, saya butuh bantuan",
-  "recipient_id": 1
-}
-```
-
-#### Mark Messages as Read
-
-```http
-PUT /api/messages/mark-read
-Authorization: Bearer {token}
-Content-Type: application/json
-
-{
-  "message_ids": [1, 2, 3]
-}
-```
-
-### 👥 User Management (Admin)
-
-#### Get All Users
-
-```http
-GET /api/users
-Authorization: Bearer {admin_token}
-```
-
-#### Update User Role
-
-```http
-PUT /api/users/:user_id/role
-Authorization: Bearer {admin_token}
-Content-Type: application/json
-
-{
-  "role": "admin"
-}
-```
-
-#### Delete User
-
-```http
-DELETE /api/users/:user_id
-Authorization: Bearer {admin_token}
-```
-
-## 🗄️ Database Schema
-
-### Core Tables
-
-#### users
-
-```sql
-- user_id (PK, INT, AUTO_INCREMENT)
-- full_name (VARCHAR 100, NOT NULL)
-- email (VARCHAR 100, UNIQUE, NOT NULL)
-- password (VARCHAR 255, NOT NULL)
-- role (ENUM: 'admin', 'customer', DEFAULT 'customer')
-- phone_number (VARCHAR 20)
-- address (TEXT)
-- city (VARCHAR 100)
-- postal_code (VARCHAR 10)
-- created_at (TIMESTAMP)
-- updated_at (TIMESTAMP)
-```
-
-#### product_categories
-
-```sql
-- category_id (PK, INT, AUTO_INCREMENT)
-- category_name (VARCHAR 100, UNIQUE, NOT NULL)
-- slug (VARCHAR 100, UNIQUE, NOT NULL)
-- image_url (VARCHAR 255)
-```
-
-#### products
-
-```sql
-- product_id (PK, INT, AUTO_INCREMENT)
-- product_name (VARCHAR 200, NOT NULL)
-- description (TEXT)
-- price (DECIMAL 10,2, NOT NULL)
-- stock (INT, DEFAULT 0)
-- category_id (FK -> product_categories)
-- image_url (VARCHAR 255)
-- main_image (VARCHAR 255)
-- is_active (BOOLEAN, DEFAULT TRUE)
-- created_at (TIMESTAMP)
-- updated_at (TIMESTAMP)
-```
-
-#### product_variants
-
-```sql
-- variant_id (PK, INT, AUTO_INCREMENT)
-- product_id (FK -> products)
-- size (VARCHAR 10)
-- color (VARCHAR 50)
-- variant_stock (INT, DEFAULT 0)
-- price_adjustment (DECIMAL 10,2, DEFAULT 0)
-```
-
-#### orders
-
-```sql
-- order_id (PK, INT, AUTO_INCREMENT)
-- user_id (FK -> users)
-- total_amount (DECIMAL 10,2, NOT NULL)
-- order_status (ENUM: 'Menunggu Konfirmasi', 'Disetujui', 'Akan Dikirimkan', 'Dikirim', 'Selesai', 'Dibatalkan')
-- payment_method (VARCHAR 50)
-- shipping_address (TEXT)
-- shipping_city (VARCHAR 100)
-- shipping_postal_code (VARCHAR 10)
-- tracking_number (VARCHAR 100)
-- notes (TEXT)
-- order_date (TIMESTAMP)
-- created_at (TIMESTAMP)
-- updated_at (TIMESTAMP)
-```
-
-#### order_items
-
-```sql
-- order_item_id (PK, INT, AUTO_INCREMENT)
-- order_id (FK -> orders)
-- product_id (FK -> products)
-- variant_id (FK -> product_variants)
-- quantity (INT, NOT NULL)
-- price_at_purchase (DECIMAL 10,2, NOT NULL)
-```
-
-#### payments
-
-```sql
-- payment_id (PK, INT, AUTO_INCREMENT)
-- order_id (FK -> orders)
-- user_id (FK -> users)
-- payment_amount (DECIMAL 10,2, NOT NULL)
-- payment_method (VARCHAR 50)
-- payment_status (ENUM: 'Menunggu Konfirmasi', 'Disetujui', 'Ditolak')
-- bank_name (VARCHAR 100)
-- account_number (VARCHAR 50)
-- account_name (VARCHAR 100)
-- transfer_proof (VARCHAR 255)
-- admin_notes (TEXT)
-- payment_date (TIMESTAMP)
-- confirmation_date (TIMESTAMP)
-- created_at (TIMESTAMP)
-- updated_at (TIMESTAMP)
-```
-
-#### carts
-
-```sql
-- cart_id (PK, INT, AUTO_INCREMENT)
-- user_id (FK -> users, UNIQUE)
-- created_at (TIMESTAMP)
-- updated_at (TIMESTAMP)
-```
-
-#### cart_items
-
-```sql
-- cart_item_id (PK, INT, AUTO_INCREMENT)
-- cart_id (FK -> carts)
-- product_id (FK -> products)
-- variant_id (FK -> product_variants)
-- quantity (INT, NOT NULL)
-- created_at (TIMESTAMP)
-- updated_at (TIMESTAMP)
-```
-
-#### reviews
-
-```sql
-- review_id (PK, INT, AUTO_INCREMENT)
-- user_id (FK -> users)
-- product_id (FK -> products)
-- order_id (FK -> orders)
-- rating (INT, 1-5, NOT NULL)
-- comment (TEXT)
-- created_at (TIMESTAMP)
-- updated_at (TIMESTAMP)
-```
-
-#### messages
-
-```sql
-- message_id (PK, INT, AUTO_INCREMENT)
-- sender_id (FK -> users)
-- recipient_id (FK -> users)
-- message (TEXT, NOT NULL)
-- is_read (BOOLEAN, DEFAULT FALSE)
-- created_at (TIMESTAMP)
-- updated_at (TIMESTAMP)
-```
-
-### Database Relationships
-
-```
-users (1) ←→ (N) orders
-users (1) ←→ (1) carts
-users (1) ←→ (N) payments
-users (1) ←→ (N) reviews
-users (1) ←→ (N) messages
-
-product_categories (1) ←→ (N) products
-products (1) ←→ (N) product_variants
-products (1) ←→ (N) order_items
-products (1) ←→ (N) cart_items
-products (1) ←→ (N) reviews
-
-orders (1) ←→ (N) order_items
-orders (1) ←→ (1) payments
-orders (1) ←→ (N) reviews
-
-carts (1) ←→ (N) cart_items
-```
-
-## 🔐 Authentication & Authorization
-
-### JWT Token Structure
-
-```json
-{
-  "userId": 1,
-  "email": "user@example.com",
-  "role": "customer",
-  "iat": 1692691200,
-  "exp": 1693296000
-}
-```
-
-### Middleware Protection
-
-- **Public Endpoints:** `/api/auth/login`, `/api/auth/register`, `/api/products` (GET), `/api/categories` (GET)
-- **Customer Protected:** `/api/cart/*`, `/api/orders/*`, `/api/payments/*`, `/api/reviews/*`
-- **Admin Protected:** `/api/users/*`, `/api/products/*` (POST/PUT/DELETE), `/api/categories/*` (POST/PUT/DELETE)
-
-### Role-based Access Control
+- **Sales Overview** - Total sales dan revenue
+- **Order Statistics** - Pending, processed, completed orders
+- **Product Stats** - Best selling products
+- **User Analytics** - New registrations dan active users
+- **Revenue Charts** - Daily/monthly revenue graphs
+
+### Product Management
+
+- **Product CRUD** - Create, read, update, delete products
+- **Image Upload** - Multiple product images
+- **Category Assignment** - Assign products to categories
+- **Stock Management** - Track dan update stock levels
+- **Product Status** - Active/inactive products
+
+### Order Management
+
+- **Order Dashboard** - All orders dengan status
+- **Order Processing** - Update order status
+- **Shipping Management** - Input tracking numbers
+- **Order Search** - Search by order ID, customer, status
+- **Bulk Actions** - Mass update order status
+
+### Payment Verification
+
+- **Payment Dashboard** - All payment submissions
+- **Proof Verification** - View uploaded transfer proofs
+- **Approve/Reject** - Payment verification actions
+- **Payment History** - All payment transactions
+- **Payment Search** - Search payments by various criteria
+
+### Real-time Features
+
+- **Live Notifications** - New orders dan payments
+- **Chat Support** - Real-time customer support
+- **Order Updates** - Instant status notifications
+- **Dashboard Updates** - Real-time stats updates
+
+## 📡 API Integration
+
+### HTTP Client Configuration
+
+- **Axios Setup** - Base URL dan interceptors
+- **Authentication Headers** - Automatic JWT token attachment
+- **Error Handling** - Global error handling dan user feedback
+- **Request/Response Logging** - Development debugging
+
+### API Endpoints Integration
+
+#### Authentication APIs
 
 ```javascript
-// Customer dapat:
-- Akses produk dan kategori (read-only)
-- Kelola cart, order, payment sendiri
-- Buat review untuk produk yang sudah dibeli
-- Chat dengan admin
-
-// Admin dapat:
-- CRUD produk, kategori, varian
-- Kelola semua orders dan payments
-- Approve/reject pembayaran
-- Chat dengan semua customer
-- Akses analytics dan reports
+// Login
+POST / api / auth / login;
+// Register
+POST / api / auth / register;
+// Get Profile
+GET / api / auth / me;
+// Update Profile
+PUT / api / auth / profile;
 ```
 
-## 💬 Real-time Features
+#### Product APIs
 
-### Socket.IO Events
+```javascript
+// Get Products
+GET /api/products
+// Get Product by ID
+GET /api/products/:id
+// Search Products
+GET /api/products/search?q=keyword
+```
 
-#### Client → Server
+#### Shopping APIs
+
+```javascript
+// Cart Operations
+GET /api/cart
+POST /api/cart
+PUT /api/cart/:itemId
+DELETE /api/cart/:itemId
+
+// Order Operations
+GET /api/orders
+POST /api/orders
+GET /api/orders/:id
+PATCH /api/orders/:id/cancel
+```
+
+#### Payment APIs
+
+```javascript
+// Payment Operations
+GET /api/payments
+PUT /api/payments/:id/confirm
+GET /api/payments/order/:orderId
+```
+
+### Real-time Socket.IO Integration
+
+#### Customer Socket Events
 
 ```javascript
 // Join chat room
-socket.emit("join_chat", {
-  userId: 1,
-  userRole: "customer",
-  userName: "John Doe",
-});
+socket.emit("join_chat", { userId, userRole: "customer" });
 
 // Send message
-socket.emit("send_message", {
-  recipientId: 2,
-  message: "Hello admin!",
-});
+socket.emit("send_message", { recipientId, message });
+
+// Listen for messages
+socket.on("new_message", handleNewMessage);
 ```
 
-#### Server → Client
+#### Admin Socket Events
 
 ```javascript
-// New message received
-socket.on("new_message", (data) => {
-  console.log("New message:", data.message);
-});
+// Listen for new orders
+socket.on("new_order", handleNewOrder);
 
-// Customer online (for admin)
-socket.on("customer_online", (data) => {
-  console.log("Customer online:", data.userName);
-});
+// Listen for new payments
+socket.on("new_payment", handleNewPayment);
 
-// Online customers list (for admin)
-socket.on("online_customers", (customers) => {
-  console.log("Online customers:", customers);
-});
+// Customer online status
+socket.on("customer_online", handleCustomerOnline);
 ```
 
-### Real-time Notifications
+## 🎯 Features Overview
 
-- **Order Notifications:** Admin menerima notifikasi real-time ketika ada pesanan baru
-- **Payment Notifications:** Admin menerima notifikasi ketika customer upload bukti pembayaran
-- **Message Notifications:** User menerima notifikasi chat real-time
+### Performance Optimizations
+
+- **Lazy Loading** - Code splitting untuk faster initial load
+- **Image Optimization** - Optimized images dengan lazy loading
+- **Caching** - API response caching
+- **Bundle Optimization** - Tree shaking dan minification
+
+### User Experience
+
+- **Responsive Design** - Mobile-first approach
+- **Loading States** - Skeleton loading dan spinners
+- **Error Boundaries** - Graceful error handling
+- **Toast Notifications** - User feedback untuk actions
+- **Form Validation** - Real-time validation dengan error messages
+
+### Accessibility
+
+- **Keyboard Navigation** - Full keyboard support
+- **Screen Reader Support** - ARIA labels dan semantic HTML
+- **Color Contrast** - WCAG compliant color scheme
+- **Focus Management** - Proper focus handling
+
+### SEO Optimization
+
+- **Meta Tags** - Dynamic meta tags per page
+- **Structured Data** - Product schema markup
+- **Semantic HTML** - Proper HTML structure
+- **Performance Metrics** - Core Web Vitals optimization
 
 ## 🚀 Deployment
 
-### Environment Setup
+### Vercel Deployment (Recommended)
+
+1. **Push ke GitHub:**
 
 ```bash
-# Set environment to production
-NODE_ENV=production
-
-# Use production database
-DB_HOST=your-production-db-host
-DB_NAME=your-production-db-name
-DB_USER=your-production-db-user
-DB_PASSWORD=your-production-db-password
-
-# Set strong JWT secret
-JWT_SECRET=your-super-secure-jwt-secret-for-production
-
-# Set production port
-PORT=80
+git add .
+git commit -m "Ready for deployment"
+git push origin main
 ```
 
-### PM2 Deployment
+2. **Deploy ke Vercel:**
 
 ```bash
-# Install PM2 globally
-npm install -g pm2
+# Install Vercel CLI
+npm i -g vercel
 
-# Start application with PM2
-pm2 start app.js --name "jkt48-backend"
+# Deploy
+vercel --prod
+```
 
-# Save PM2 configuration
-pm2 save
+### Netlify Deployment
 
-# Setup PM2 startup
-pm2 startup
+1. **Build production:**
+
+```bash
+npm run build
+```
+
+2. **Deploy ke Netlify:**
+
+```bash
+# Install Netlify CLI
+npm i -g netlify-cli
+
+# Deploy
+netlify deploy --prod --dir=dist
 ```
 
 ### Docker Deployment
@@ -925,87 +581,92 @@ COPY package*.json ./
 RUN npm ci --only=production
 
 COPY . .
+RUN npm run build
 
-EXPOSE 5000
+EXPOSE 5173
 
-CMD ["node", "app.js"]
+CMD ["npm", "run", "preview"]
 ```
 
-### Nginx Configuration
+### Environment Variables untuk Production
 
-```nginx
-server {
-    listen 80;
-    server_name your-domain.com;
-
-    location / {
-        proxy_pass http://localhost:5000;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_cache_bypass $http_upgrade;
-    }
-
-    # Socket.IO support
-    location /socket.io/ {
-        proxy_pass http://localhost:5000;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-}
+```env
+VITE_API_BASE_URL=https://your-backend-api.com/api
+VITE_SOCKET_URL=https://your-backend-api.com
+VITE_APP_NAME=JKT48 E-Commerce
+VITE_NODE_ENV=production
 ```
 
 ## 🤝 Contributing
 
-1. **Fork the repository**
-2. **Create feature branch:** `git checkout -b feature/amazing-feature`
-3. **Commit changes:** `git commit -m 'Add amazing feature'`
-4. **Push to branch:** `git push origin feature/amazing-feature`
-5. **Open Pull Request**
+### Development Workflow
 
-### Development Guidelines
+1. **Fork repository**
+2. **Create feature branch:**
 
-- Gunakan ESLint untuk code formatting
-- Tulis test untuk fitur baru
-- Update dokumentasi jika diperlukan
-- Follow conventional commit messages
+```bash
+git checkout -b feature/amazing-feature
+```
 
-### Code Style
+3. **Make changes dan commit:**
+
+```bash
+git commit -m "Add amazing feature"
+```
+
+4. **Push ke branch:**
+
+```bash
+git push origin feature/amazing-feature
+```
+
+5. **Create Pull Request**
+
+### Code Standards
+
+#### Component Structure
 
 ```javascript
-// Use camelCase for variables and functions
-const userName = "john_doe";
+// Component template
+import React from "react";
+import PropTypes from "prop-types";
 
-// Use PascalCase for classes and components
-class UserController {
-  async getUsers() {
-    // Implementation
-  }
-}
+const ComponentName = ({ prop1, prop2 }) => {
+  // Hooks
+  // Event handlers
+  // Render logic
 
-// Use UPPER_CASE for constants
-const JWT_SECRET = process.env.JWT_SECRET;
-
-// Always use async/await instead of promises
-const getUser = async (userId) => {
-  try {
-    const user = await User.findByPk(userId);
-    return user;
-  } catch (error) {
-    console.error("Error:", error);
-    throw error;
-  }
+  return <div className="component-class">{/* JSX content */}</div>;
 };
+
+ComponentName.propTypes = {
+  prop1: PropTypes.string.required,
+  prop2: PropTypes.number,
+};
+
+export default ComponentName;
 ```
+
+#### Naming Conventions
+
+- **Components:** PascalCase (`ProductCard.jsx`)
+- **Files:** kebab-case (`product-card.jsx`)
+- **Variables:** camelCase (`productList`)
+- **Constants:** UPPER_CASE (`API_BASE_URL`)
+
+#### Folder Organization
+
+- Group related components bersama
+- Use index files untuk cleaner imports
+- Separate concerns (components, hooks, utils)
+- Follow atomic design principles
+
+### Testing Guidelines
+
+- Write unit tests untuk components
+- Test user interactions
+- Mock API calls
+- Test responsive behavior
 
 ---
 
@@ -1014,7 +675,7 @@ const getUser = async (userId) => {
 Jika ada pertanyaan atau issues:
 
 - **Email:** [your-email@example.com](mailto:your-email@example.com)
-- **GitHub Issues:** [Create Issue](https://github.com/RendiS10/backend-ecommerce/issues)
+- **GitHub Issues:** [Create Issue](https://github.com/RendiS10/e-commerce-jkt48/issues)
 
 ---
 
