@@ -49,10 +49,12 @@ function CheckoutDetail() {
 
     // Cek apakah ada direct buy item
     const directBuyData = localStorage.getItem("directBuyItem");
+    console.log("Direct buy data from localStorage:", directBuyData);
 
     if (directBuyData) {
       // Mode direct buy
       const item = JSON.parse(directBuyData);
+      console.log("Parsed direct buy item:", item);
       setDirectBuyItem(item);
 
       // Fetch user profile saja
@@ -83,8 +85,7 @@ function CheckoutDetail() {
           navigate("/");
         });
 
-      // Clear direct buy data dari localStorage setelah digunakan
-      localStorage.removeItem("directBuyItem");
+      // Jangan hapus directBuyItem di sini, hapus setelah order berhasil
     } else {
       // Mode normal dari cart
       // Fetch cart data dan user profile
@@ -162,13 +163,58 @@ function CheckoutDetail() {
   };
 
   const handleSubmitOrder = async () => {
+    // SweetAlert konfirmasi sebelum membuat pesanan
+    const result = await Swal.fire({
+      icon: "question",
+      title: "Konfirmasi Pesanan",
+      text: "Apakah Anda yakin ingin membuat pesanan ini?",
+      html: `
+        <div class="text-left">
+          <p><strong>Total Pembayaran:</strong> ${formatRupiah(total)}</p>
+          <p><strong>Metode Pembayaran:</strong> ${
+            checkoutData.payment_method === "transfer"
+              ? "Transfer Bank"
+              : "Cash on Delivery"
+          }</p>
+          <p class="text-sm text-gray-600 mt-2">Pastikan semua data sudah benar sebelum melanjutkan.</p>
+        </div>
+      `,
+      showCancelButton: true,
+      confirmButtonText: "Ya, Buat Pesanan",
+      cancelButtonText: "Batal",
+      confirmButtonColor: "#cd0c0d",
+      cancelButtonColor: "#6b7280",
+      reverseButtons: true,
+    });
+
+    if (!result.isConfirmed) {
+      return; // User membatalkan
+    }
+
     if (!validateForm()) {
-      alert("Mohon lengkapi semua data yang diperlukan");
+      Swal.fire({
+        icon: "error",
+        title: "Data Tidak Lengkap",
+        text: "Mohon lengkapi semua data yang diperlukan",
+        confirmButtonText: "OK",
+        confirmButtonColor: "#cd0c0d",
+      });
       return;
     }
 
-    if (cartItems.length === 0) {
-      alert("Keranjang kosong");
+    // Validasi: pastikan ada item untuk checkout (baik dari cart atau direct buy)
+    if (!directBuyItem && cartItems.length === 0) {
+      Swal.fire({
+        icon: "warning",
+        title: "Tidak Ada Item",
+        text: "Tidak ada item untuk checkout. Silakan tambahkan produk ke keranjang terlebih dahulu.",
+        confirmButtonText: "Belanja Sekarang",
+        confirmButtonColor: "#cd0c0d",
+      }).then((result) => {
+        if (result.isConfirmed) {
+          navigate("/");
+        }
+      });
       return;
     }
 
@@ -220,13 +266,42 @@ function CheckoutDetail() {
       }
 
       const result = await response.json();
-      alert(`Pesanan berhasil dibuat! Nomor Resi: ${result.tracking_number}`);
+
+      // SweetAlert sukses pesanan dibuat
+      await Swal.fire({
+        icon: "success",
+        title: "Pesanan Berhasil Dibuat!",
+        html: `
+          <div class="text-center">
+            <p class="mb-2">Terima kasih atas pesanan Anda!</p>
+            <p><strong>Nomor Resi:</strong> ${result.tracking_number}</p>
+            <p class="text-sm text-gray-600 mt-2">Anda akan diarahkan ke halaman pesanan untuk melihat status.</p>
+          </div>
+        `,
+        confirmButtonText: "Lihat Pesanan",
+        confirmButtonColor: "#cd0c0d",
+        timer: 5000,
+        timerProgressBar: true,
+      });
+
+      // Clear direct buy data setelah order berhasil
+      localStorage.removeItem("directBuyItem");
 
       // Redirect langsung ke halaman Orders
       navigate("/orders");
     } catch (error) {
       console.error("Error creating order:", error);
-      alert("Gagal membuat pesanan. Silakan coba lagi.");
+
+      // SweetAlert error pesanan gagal
+      Swal.fire({
+        icon: "error",
+        title: "Gagal Membuat Pesanan",
+        text:
+          error.message ||
+          "Terjadi kesalahan saat membuat pesanan. Silakan coba lagi.",
+        confirmButtonText: "Coba Lagi",
+        confirmButtonColor: "#cd0c0d",
+      });
     } finally {
       setLoading(false);
     }
@@ -252,7 +327,11 @@ function CheckoutDetail() {
     return <div className="text-center py-8">Loading...</div>;
   }
 
+  console.log("Render - directBuyItem:", directBuyItem);
+  console.log("Render - cartItems.length:", cartItems.length);
+
   if (!directBuyItem && cartItems.length === 0) {
+    console.log("Showing empty cart message");
     return (
       <div className="text-center py-8">
         <p>Keranjang kosong</p>

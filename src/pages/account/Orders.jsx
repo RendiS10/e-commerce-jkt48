@@ -216,7 +216,26 @@ function Orders() {
       canCancel: canCancelOrder(orderToCancel?.order_status),
     });
 
-    if (!window.confirm("Apakah Anda yakin ingin membatalkan pesanan ini?")) {
+    // SweetAlert konfirmasi sebelum membatalkan pesanan
+    const result = await Swal.fire({
+      icon: "warning",
+      title: "Batalkan Pesanan",
+      text: "Apakah Anda yakin ingin membatalkan pesanan ini?",
+      html: `
+        <div class="text-center">
+          <p>Pesanan yang sudah dibatalkan tidak dapat dikembalikan.</p>
+          <p class="text-sm text-gray-600 mt-2">Pastikan keputusan Anda sudah tepat.</p>
+        </div>
+      `,
+      showCancelButton: true,
+      confirmButtonText: "Ya, Batalkan Pesanan",
+      cancelButtonText: "Tidak",
+      confirmButtonColor: "#dc2626",
+      cancelButtonColor: "#6b7280",
+      reverseButtons: true,
+    });
+
+    if (!result.isConfirmed) {
       return;
     }
 
@@ -245,7 +264,15 @@ function Orders() {
       }
 
       const result = await response.json();
-      alert("Pesanan berhasil dibatalkan");
+
+      // SweetAlert sukses pesanan dibatalkan
+      await Swal.fire({
+        icon: "success",
+        title: "Pesanan Berhasil Dibatalkan",
+        text: "Pesanan Anda telah berhasil dibatalkan.",
+        confirmButtonText: "OK",
+        confirmButtonColor: "#cd0c0d",
+      });
 
       // Update status pesanan di state lokal
       setOrders((prevOrders) =>
@@ -257,7 +284,17 @@ function Orders() {
       );
     } catch (error) {
       console.error("Error cancelling order:", error);
-      alert(error.message || "Gagal membatalkan pesanan. Silakan coba lagi.");
+
+      // SweetAlert error pembatalan gagal
+      Swal.fire({
+        icon: "error",
+        title: "Gagal Membatalkan Pesanan",
+        text:
+          error.message ||
+          "Terjadi kesalahan saat membatalkan pesanan. Silakan coba lagi.",
+        confirmButtonText: "Coba Lagi",
+        confirmButtonColor: "#cd0c0d",
+      });
     }
   };
 
@@ -296,6 +333,32 @@ function Orders() {
   };
 
   const handleConfirmPayment = async () => {
+    // SweetAlert konfirmasi sebelum submit pembayaran
+    const result = await Swal.fire({
+      icon: "question",
+      title: "Konfirmasi Pembayaran",
+      text: "Apakah Anda yakin data pembayaran sudah benar?",
+      html: `
+        <div class="text-left">
+          <p><strong>Bank:</strong> ${paymentData.bank_name}</p>
+          <p><strong>No. Rekening:</strong> ${paymentData.account_number}</p>
+          <p><strong>Atas Nama:</strong> ${paymentData.account_name}</p>
+          <p><strong>Tanggal Transfer:</strong> ${paymentData.payment_date}</p>
+          <p class="text-sm text-gray-600 mt-2">Pastikan semua data sudah benar sebelum melanjutkan.</p>
+        </div>
+      `,
+      showCancelButton: true,
+      confirmButtonText: "Ya, Konfirmasi Pembayaran",
+      cancelButtonText: "Batal",
+      confirmButtonColor: "#cd0c0d",
+      cancelButtonColor: "#6b7280",
+      reverseButtons: true,
+    });
+
+    if (!result.isConfirmed) {
+      return; // User membatalkan
+    }
+
     try {
       const token = localStorage.getItem("token");
 
@@ -339,7 +402,17 @@ function Orders() {
       }
 
       const result = await confirmResponse.json();
-      alert("Pembayaran berhasil dikonfirmasi. Menunggu verifikasi admin.");
+
+      // SweetAlert sukses pembayaran dikonfirmasi
+      await Swal.fire({
+        icon: "success",
+        title: "Pembayaran Berhasil Dikonfirmasi!",
+        text: "Pembayaran Anda telah dikonfirmasi dan sedang menunggu verifikasi admin.",
+        confirmButtonText: "OK",
+        confirmButtonColor: "#cd0c0d",
+        timer: 5000,
+        timerProgressBar: true,
+      });
 
       // Update payment status for this order
       setOrderPaymentStatus((prev) => ({
@@ -357,7 +430,17 @@ function Orders() {
       // window.location.reload();
     } catch (error) {
       console.error("Error confirming payment:", error);
-      alert(error.message || "Gagal konfirmasi pembayaran");
+
+      // SweetAlert error pembayaran gagal
+      Swal.fire({
+        icon: "error",
+        title: "Gagal Konfirmasi Pembayaran",
+        text:
+          error.message ||
+          "Terjadi kesalahan saat konfirmasi pembayaran. Silakan coba lagi.",
+        confirmButtonText: "Coba Lagi",
+        confirmButtonColor: "#cd0c0d",
+      });
     }
   };
 
@@ -373,7 +456,26 @@ function Orders() {
 
   // Konfirmasi pesanan diterima
   const handleConfirmOrderReceived = async (orderId) => {
-    if (!window.confirm("Apakah Anda yakin pesanan sudah diterima?")) {
+    // SweetAlert konfirmasi sebelum confirm pesanan diterima
+    const result = await Swal.fire({
+      icon: "question",
+      title: "Konfirmasi Pesanan Diterima",
+      text: "Apakah Anda yakin pesanan sudah diterima dengan baik?",
+      html: `
+        <div class="text-center">
+          <p>Setelah dikonfirmasi, pesanan akan diselesaikan secara otomatis.</p>
+          <p class="text-sm text-gray-600 mt-2">Pastikan semua produk telah diterima sesuai pesanan.</p>
+        </div>
+      `,
+      showCancelButton: true,
+      confirmButtonText: "Ya, Pesanan Sudah Diterima",
+      cancelButtonText: "Belum",
+      confirmButtonColor: "#cd0c0d",
+      cancelButtonColor: "#6b7280",
+      reverseButtons: true,
+    });
+
+    if (!result.isConfirmed) {
       return;
     }
 
@@ -398,9 +500,15 @@ function Orders() {
       }
 
       const result = await response.json();
-      alert(
-        "Pesanan berhasil dikonfirmasi diterima dan otomatis diselesaikan!"
-      );
+
+      // SweetAlert sukses pesanan dikonfirmasi diterima
+      await Swal.fire({
+        icon: "success",
+        title: "Pesanan Berhasil Dikonfirmasi!",
+        text: "Pesanan telah dikonfirmasi diterima dan otomatis diselesaikan. Terima kasih!",
+        confirmButtonText: "OK",
+        confirmButtonColor: "#cd0c0d",
+      });
 
       // Update status pesanan di state lokal langsung ke "Selesai"
       setOrders((prevOrders) =>
@@ -412,7 +520,17 @@ function Orders() {
       );
     } catch (error) {
       console.error("Error confirming order received:", error);
-      alert(error.message || "Gagal konfirmasi pesanan diterima");
+
+      // SweetAlert error konfirmasi gagal
+      Swal.fire({
+        icon: "error",
+        title: "Gagal Konfirmasi Pesanan",
+        text:
+          error.message ||
+          "Terjadi kesalahan saat konfirmasi pesanan diterima. Silakan coba lagi.",
+        confirmButtonText: "Coba Lagi",
+        confirmButtonColor: "#cd0c0d",
+      });
     }
   };
 
@@ -471,9 +589,13 @@ function Orders() {
       const allReviewed = data.products.every((item) => item.already_reviewed);
 
       if (allReviewed) {
-        alert(
-          "Anda sudah memberikan review untuk semua produk di pesanan ini."
-        );
+        Swal.fire({
+          icon: "info",
+          title: "Review Sudah Lengkap",
+          text: "Anda sudah memberikan review untuk semua produk di pesanan ini.",
+          confirmButtonText: "OK",
+          confirmButtonColor: "#cd0c0d",
+        });
         return;
       }
 
@@ -494,7 +616,17 @@ function Orders() {
       setReviewData(initialReviewData);
     } catch (error) {
       console.error("Error fetching reviewable products:", error);
-      alert(error.message || "Gagal mengambil data produk untuk review");
+
+      // SweetAlert error gagal mengambil data produk
+      Swal.fire({
+        icon: "error",
+        title: "Gagal Memuat Data",
+        text:
+          error.message ||
+          "Gagal mengambil data produk untuk review. Silakan coba lagi.",
+        confirmButtonText: "Coba Lagi",
+        confirmButtonColor: "#cd0c0d",
+      });
     }
   };
 
@@ -535,7 +667,14 @@ function Orders() {
         }
       }
 
-      alert("Review berhasil dikirim! Terima kasih atas feedback Anda.");
+      // SweetAlert sukses review dikirim
+      await Swal.fire({
+        icon: "success",
+        title: "Review Berhasil Dikirim!",
+        text: "Terima kasih atas feedback Anda. Review akan membantu pembeli lain.",
+        confirmButtonText: "OK",
+        confirmButtonColor: "#cd0c0d",
+      });
 
       // Update review status for this order
       const updatedStatus = await checkOrderReviewStatus(
@@ -552,7 +691,17 @@ function Orders() {
       setReviewData({});
     } catch (error) {
       console.error("Error submitting reviews:", error);
-      alert(error.message || "Gagal mengirim review");
+
+      // SweetAlert error submit review gagal
+      Swal.fire({
+        icon: "error",
+        title: "Gagal Mengirim Review",
+        text:
+          error.message ||
+          "Terjadi kesalahan saat mengirim review. Silakan coba lagi.",
+        confirmButtonText: "Coba Lagi",
+        confirmButtonColor: "#cd0c0d",
+      });
     }
   };
 
