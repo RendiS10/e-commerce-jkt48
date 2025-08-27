@@ -1,5 +1,6 @@
 // API Configuration and Utilities
-const API_BASE_URL = "http://localhost:5000/api";
+const API_BASE_URL =
+  "https://e-commerce-jkt48-prototype-production.up.railway.app/api";
 
 /**
  * Get authorization headers with token

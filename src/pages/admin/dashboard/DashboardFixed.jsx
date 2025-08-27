@@ -28,21 +28,27 @@ const Dashboard = () => {
       };
 
       // Fetch users
-      const usersResponse = await fetch("http://localhost:5000/api/users", {
-        headers,
-      });
+      const usersResponse = await fetch(
+        "https://e-commerce-jkt48-prototype-production.up.railway.app/api/users",
+        {
+          headers,
+        }
+      );
       const users = usersResponse.ok ? await usersResponse.json() : [];
 
       // Fetch products
       const productsResponse = await fetch(
-        "http://localhost:5000/api/products"
+        "https://e-commerce-jkt48-prototype-production.up.railway.app/api/products"
       );
       const products = productsResponse.ok ? await productsResponse.json() : [];
 
       // Fetch orders
-      const ordersResponse = await fetch("http://localhost:5000/api/orders", {
-        headers,
-      });
+      const ordersResponse = await fetch(
+        "https://e-commerce-jkt48-prototype-production.up.railway.app/api/orders",
+        {
+          headers,
+        }
+      );
       const orders = ordersResponse.ok ? await ordersResponse.json() : [];
 
       // Calculate total revenue

@@ -27,7 +27,9 @@ function DetailProduct() {
   useEffect(() => {
     setLoading(true);
     setError("");
-    fetch(`http://localhost:5000/api/products/${id}`)
+    fetch(
+      `https://e-commerce-jkt48-prototype-production.up.railway.app/api/products/${id}`
+    )
       .then((res) => {
         if (!res.ok) throw new Error("Produk tidak ditemukan");
         return res.json();
@@ -40,7 +42,9 @@ function DetailProduct() {
         setError(err.message || "Gagal memuat produk");
         setLoading(false);
       });
-    fetch(`http://localhost:5000/api/variants`)
+    fetch(
+      `https://e-commerce-jkt48-prototype-production.up.railway.app/api/variants`
+    )
       .then((res) => res.json())
       .then((data) => setVariants(data.filter((v) => v.product_id == id)));
   }, [id]);

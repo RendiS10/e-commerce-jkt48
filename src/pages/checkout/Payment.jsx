@@ -29,7 +29,7 @@ function PembayaranPage() {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `http://localhost:5000/api/orders/${order.order_id}/confirm-cod`,
+        `https://e-commerce-jkt48-prototype-production.up.railway.app/api/orders/${order.order_id}/confirm-cod`,
         {
           method: "PATCH",
           headers: {

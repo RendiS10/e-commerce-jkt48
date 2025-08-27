@@ -7,7 +7,9 @@ function ProductLainnya() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/products")
+    fetch(
+      "https://e-commerce-jkt48-prototype-production.up.railway.app/api/products"
+    )
       .then((res) => res.json())
       .then((data) => {
         setProducts(data);

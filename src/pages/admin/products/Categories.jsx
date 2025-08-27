@@ -35,11 +35,14 @@ const Categories = () => {
           const counts = {};
 
           // Fetch products and group by category
-          const response = await fetch("http://localhost:5000/api/products", {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          });
+          const response = await fetch(
+            "https://e-commerce-jkt48-prototype-production.up.railway.app/api/products",
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
 
           if (response.ok) {
             const products = await response.json();
@@ -112,14 +115,17 @@ const Categories = () => {
             : API_ENDPOINTS.CATEGORIES;
 
           const method = editingCategory ? "PUT" : "POST";
-          return await fetch(`http://localhost:5000/api${endpoint}`, {
-            method,
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-            body: JSON.stringify(formData),
-          });
+          return await fetch(
+            `https://e-commerce-jkt48-prototype-production.up.railway.app/api${endpoint}`,
+            {
+              method,
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+              },
+              body: JSON.stringify(formData),
+            }
+          );
         },
         {
           onSuccess: () => {
@@ -212,7 +218,7 @@ const Categories = () => {
       await mutate(
         async () => {
           return await fetch(
-            `http://localhost:5000/api/categories/${categoryId}`,
+            `https://e-commerce-jkt48-prototype-production.up.railway.app/api/categories/${categoryId}`,
             {
               method: "DELETE",
               headers: {

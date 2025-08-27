@@ -22,11 +22,14 @@ const Transactions = () => {
   const fetchTransactions = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch("http://localhost:5000/api/transactions", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await fetch(
+        "https://e-commerce-jkt48-prototype-production.up.railway.app/api/transactions",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       if (response.ok) {
         const data = await response.json();
         setTransactions(data);
@@ -42,7 +45,7 @@ const Transactions = () => {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        "http://localhost:5000/api/transactions/stats",
+        "https://e-commerce-jkt48-prototype-production.up.railway.app/api/transactions/stats",
         {
           headers: {
             Authorization: `Bearer ${token}`,

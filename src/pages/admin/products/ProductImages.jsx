@@ -23,7 +23,9 @@ const ProductImages = () => {
 
   const fetchImages = async () => {
     try {
-      const response = await fetch("http://localhost:5000/api/product-images");
+      const response = await fetch(
+        "https://e-commerce-jkt48-prototype-production.up.railway.app/api/product-images"
+      );
       if (response.ok) {
         const data = await response.json();
         setImages(data);
@@ -37,7 +39,9 @@ const ProductImages = () => {
 
   const fetchProducts = async () => {
     try {
-      const response = await fetch("http://localhost:5000/api/products");
+      const response = await fetch(
+        "https://e-commerce-jkt48-prototype-production.up.railway.app/api/products"
+      );
       if (response.ok) {
         const data = await response.json();
         setProducts(data);
@@ -94,8 +98,8 @@ const ProductImages = () => {
 
     try {
       const url = editingImage
-        ? `http://localhost:5000/api/product-images/${editingImage.image_id}`
-        : "http://localhost:5000/api/product-images";
+        ? `https://e-commerce-jkt48-prototype-production.up.railway.app/api/product-images/${editingImage.image_id}`
+        : "https://e-commerce-jkt48-prototype-production.up.railway.app/api/product-images";
 
       const response = await fetch(url, {
         method: editingImage ? "PUT" : "POST",
@@ -201,7 +205,7 @@ const ProductImages = () => {
     const token = localStorage.getItem("token");
     try {
       const response = await fetch(
-        `http://localhost:5000/api/product-images/${imageId}`,
+        `https://e-commerce-jkt48-prototype-production.up.railway.app/api/product-images/${imageId}`,
         {
           method: "DELETE",
           headers: {

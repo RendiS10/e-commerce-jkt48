@@ -78,7 +78,7 @@ function Checkout() {
     try {
       const token = localStorage.getItem("token");
       const res = await fetch(
-        `http://localhost:5000/api/cart/${cart_item_id}`,
+        `https://e-commerce-jkt48-prototype-production.up.railway.app/api/cart/${cart_item_id}`,
         {
           method: "PUT",
           headers: {
@@ -111,7 +111,7 @@ function Checkout() {
       }
 
       const res = await fetch(
-        `http://localhost:5000/api/cart/${cart_item_id}`,
+        `https://e-commerce-jkt48-prototype-production.up.railway.app/api/cart/${cart_item_id}`,
         {
           method: "DELETE",
           headers: { Authorization: `Bearer ${token}` },

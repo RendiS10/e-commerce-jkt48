@@ -24,7 +24,9 @@ const ProductVariants = () => {
 
   const fetchVariants = async () => {
     try {
-      const response = await fetch("http://localhost:5000/api/variants");
+      const response = await fetch(
+        "https://e-commerce-jkt48-prototype-production.up.railway.app/api/variants"
+      );
       if (response.ok) {
         const data = await response.json();
         setVariants(data);
@@ -38,7 +40,9 @@ const ProductVariants = () => {
 
   const fetchProducts = async () => {
     try {
-      const response = await fetch("http://localhost:5000/api/products");
+      const response = await fetch(
+        "https://e-commerce-jkt48-prototype-production.up.railway.app/api/products"
+      );
       if (response.ok) {
         const data = await response.json();
         setProducts(data);
@@ -94,8 +98,8 @@ const ProductVariants = () => {
 
     try {
       const url = editingVariant
-        ? `http://localhost:5000/api/variants/${editingVariant.variant_id}`
-        : "http://localhost:5000/api/variants";
+        ? `https://e-commerce-jkt48-prototype-production.up.railway.app/api/variants/${editingVariant.variant_id}`
+        : "https://e-commerce-jkt48-prototype-production.up.railway.app/api/variants";
 
       const response = await fetch(url, {
         method: editingVariant ? "PUT" : "POST",
@@ -193,7 +197,7 @@ const ProductVariants = () => {
     const token = localStorage.getItem("token");
     try {
       const response = await fetch(
-        `http://localhost:5000/api/variants/${variantId}`,
+        `https://e-commerce-jkt48-prototype-production.up.railway.app/api/variants/${variantId}`,
         {
           method: "DELETE",
           headers: {

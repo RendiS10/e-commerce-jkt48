@@ -28,7 +28,7 @@ const NotificationBanner = () => {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        "http://localhost:5000/api/orders/notifications",
+        "https://e-commerce-jkt48-prototype-production.up.railway.app/api/orders/notifications",
         {
           headers: {
             Authorization: `Bearer ${token}`,

@@ -26,7 +26,7 @@ const SidebarWithNotifications = () => {
 
       // Fetch notifications untuk orders dan payments
       const notificationsRes = await fetch(
-        "http://localhost:5000/api/orders/notifications",
+        "https://e-commerce-jkt48-prototype-production.up.railway.app/api/orders/notifications",
         { headers }
       );
       if (notificationsRes.ok) {
@@ -39,7 +39,7 @@ const SidebarWithNotifications = () => {
       }
 
       // TODO: Bisa ditambahkan untuk messages
-      // const messagesRes = await fetch("http://localhost:5000/api/messages", { headers });
+      // const messagesRes = await fetch("https://e-commerce-jkt48-prototype-production.up.railway.app/api/messages", { headers });
     } catch (error) {
       console.error("Error fetching notification counts:", error);
     }

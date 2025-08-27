@@ -13,11 +13,14 @@ const Users = () => {
   const fetchUsers = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch("http://localhost:5000/api/users", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await fetch(
+        "https://e-commerce-jkt48-prototype-production.up.railway.app/api/users",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       if (response.ok) {
         const data = await response.json();
         setUsers(data);
@@ -85,7 +88,7 @@ const Users = () => {
       const token = localStorage.getItem("token");
 
       const response = await fetch(
-        `http://localhost:5000/api/users/${userId}`,
+        `https://e-commerce-jkt48-prototype-production.up.railway.app/api/users/${userId}`,
         {
           method: "DELETE",
           headers: {

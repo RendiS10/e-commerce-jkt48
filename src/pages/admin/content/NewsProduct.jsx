@@ -44,11 +44,14 @@ const NewsProduct = () => {
   const fetchNews = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch("http://localhost:5000/api/news", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await fetch(
+        "https://e-commerce-jkt48-prototype-production.up.railway.app/api/news",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       if (response.ok) {
         const data = await response.json();
         setNews(data);
@@ -62,7 +65,9 @@ const NewsProduct = () => {
 
   const fetchProducts = async () => {
     try {
-      const response = await fetch("http://localhost:5000/api/products");
+      const response = await fetch(
+        "https://e-commerce-jkt48-prototype-production.up.railway.app/api/products"
+      );
       if (response.ok) {
         const data = await response.json();
         setProducts(data);
@@ -120,8 +125,8 @@ const NewsProduct = () => {
 
     try {
       const url = editingNews
-        ? `http://localhost:5000/api/news/${editingNews.news_id}`
-        : "http://localhost:5000/api/news";
+        ? `https://e-commerce-jkt48-prototype-production.up.railway.app/api/news/${editingNews.news_id}`
+        : "https://e-commerce-jkt48-prototype-production.up.railway.app/api/news";
 
       const response = await fetch(url, {
         method: editingNews ? "PUT" : "POST",
@@ -239,12 +244,15 @@ const NewsProduct = () => {
 
     const token = localStorage.getItem("token");
     try {
-      const response = await fetch(`http://localhost:5000/api/news/${newsId}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await fetch(
+        `https://e-commerce-jkt48-prototype-production.up.railway.app/api/news/${newsId}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       if (response.ok) {
         // SweetAlert sukses news dihapus
@@ -321,14 +329,17 @@ const NewsProduct = () => {
 
     const token = localStorage.getItem("token");
     try {
-      const response = await fetch(`http://localhost:5000/api/news/${newsId}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ is_active: newStatus }),
-      });
+      const response = await fetch(
+        `https://e-commerce-jkt48-prototype-production.up.railway.app/api/news/${newsId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ is_active: newStatus }),
+        }
+      );
 
       if (response.ok) {
         // SweetAlert sukses toggle status

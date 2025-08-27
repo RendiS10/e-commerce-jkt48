@@ -138,7 +138,7 @@ const AdminChat = () => {
       try {
         const token = localStorage.getItem("token");
         const response = await fetch(
-          "http://localhost:5000/api/messages/chat-users",
+          "https://e-commerce-jkt48-prototype-production.up.railway.app/api/messages/chat-users",
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -176,7 +176,7 @@ const AdminChat = () => {
       try {
         const token = localStorage.getItem("token");
         const response = await fetch(
-          `http://localhost:5000/api/messages?with_user=${selectedCustomer.user_id}`,
+          `https://e-commerce-jkt48-prototype-production.up.railway.app/api/messages?with_user=${selectedCustomer.user_id}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,

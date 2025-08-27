@@ -91,11 +91,14 @@ const CustomerChat = ({ user, onClose }) => {
     const loadMessages = async () => {
       try {
         const token = localStorage.getItem("token");
-        const response = await fetch("http://localhost:5000/api/messages", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const response = await fetch(
+          "https://e-commerce-jkt48-prototype-production.up.railway.app/api/messages",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
 
         if (response.ok) {
           const data = await response.json();

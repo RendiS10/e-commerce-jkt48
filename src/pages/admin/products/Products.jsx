@@ -84,14 +84,17 @@ const Products = () => {
           const method = editingProduct ? "PUT" : "POST";
           const { stock, ...dataToSend } = formData;
 
-          return await fetch(`http://localhost:5000/api${endpoint}`, {
-            method,
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-            body: JSON.stringify(dataToSend),
-          });
+          return await fetch(
+            `https://e-commerce-jkt48-prototype-production.up.railway.app/api${endpoint}`,
+            {
+              method,
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+              },
+              body: JSON.stringify(dataToSend),
+            }
+          );
         },
         {
           onSuccess: () => {
@@ -180,7 +183,7 @@ const Products = () => {
       await mutate(
         async () => {
           return await fetch(
-            `http://localhost:5000/api/products/${productId}`,
+            `https://e-commerce-jkt48-prototype-production.up.railway.app/api/products/${productId}`,
             {
               method: "DELETE",
               headers: {

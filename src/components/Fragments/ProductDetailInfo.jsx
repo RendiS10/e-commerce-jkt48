@@ -34,7 +34,9 @@ function ProductDetailInfo({ product }) {
 
   useEffect(() => {
     if (product?.product_id) {
-      fetch(`http://localhost:5000/api/variants`)
+      fetch(
+        `https://e-commerce-jkt48-prototype-production.up.railway.app/api/variants`
+      )
         .then((res) => res.json())
         .then((data) =>
           setVariants(data.filter((v) => v.product_id == product.product_id))
@@ -57,9 +59,12 @@ function ProductDetailInfo({ product }) {
       setCartLoading(true);
       try {
         const token = localStorage.getItem("token");
-        const res = await fetch("http://localhost:5000/api/cart", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const res = await fetch(
+          "https://e-commerce-jkt48-prototype-production.up.railway.app/api/cart",
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
         if (!res.ok) throw new Error("Gagal mengambil data keranjang");
         const data = await res.json();
         const items = data.CartItems || [];
@@ -114,18 +119,21 @@ function ProductDetailInfo({ product }) {
     }
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch("http://localhost:5000/api/cart", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          product_id: product.product_id || product.id,
-          quantity: qty,
-          variant_id: variant_id || null,
-        }),
-      });
+      const res = await fetch(
+        "https://e-commerce-jkt48-prototype-production.up.railway.app/api/cart",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            product_id: product.product_id || product.id,
+            quantity: qty,
+            variant_id: variant_id || null,
+          }),
+        }
+      );
       if (!res.ok) {
         const data = await res.json();
         Swal.fire({

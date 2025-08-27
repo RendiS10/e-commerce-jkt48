@@ -17,7 +17,7 @@ export const useProductReviews = (productId) => {
         setError(null);
 
         const response = await fetch(
-          `http://localhost:5000/api/reviews/product/${productId}`,
+          `https://e-commerce-jkt48-prototype-production.up.railway.app/api/reviews/product/${productId}`,
           {
             method: "GET",
             headers: {

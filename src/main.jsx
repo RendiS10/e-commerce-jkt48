@@ -58,9 +58,12 @@ function AppProviders({ children }) {
     const fetchUserAndCart = async () => {
       try {
         // Fetch user info
-        const userResponse = await fetch("http://localhost:5000/api/auth/me", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const userResponse = await fetch(
+          "https://e-commerce-jkt48-prototype-production.up.railway.app/api/auth/me",
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
 
         console.log("UserContext: Auth response status:", userResponse.status);
 
@@ -71,9 +74,12 @@ function AppProviders({ children }) {
 
           // Only fetch cart if user is successfully loaded
           try {
-            const cartResponse = await fetch("http://localhost:5000/api/cart", {
-              headers: { Authorization: `Bearer ${token}` },
-            });
+            const cartResponse = await fetch(
+              "https://e-commerce-jkt48-prototype-production.up.railway.app/api/cart",
+              {
+                headers: { Authorization: `Bearer ${token}` },
+              }
+            );
 
             if (cartResponse.ok) {
               const cartData = await cartResponse.json();
@@ -114,13 +120,19 @@ function AppProviders({ children }) {
       return;
     }
     try {
-      const userRes = await fetch("http://localhost:5000/api/auth/me", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const userRes = await fetch(
+        "https://e-commerce-jkt48-prototype-production.up.railway.app/api/auth/me",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       setUser(userRes.ok ? await userRes.json() : null);
-      const cartRes = await fetch("http://localhost:5000/api/cart", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const cartRes = await fetch(
+        "https://e-commerce-jkt48-prototype-production.up.railway.app/api/cart",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       const cartData = cartRes.ok ? await cartRes.json() : { CartItems: [] };
       setCart(cartData.CartItems || []);
     } catch {

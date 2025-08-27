@@ -51,9 +51,12 @@ function Orders() {
 
     setIsAuthenticated(true);
 
-    fetch("http://localhost:5000/api/orders", {
-      headers: { Authorization: `Bearer ${token}` },
-    })
+    fetch(
+      "https://e-commerce-jkt48-prototype-production.up.railway.app/api/orders",
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    )
       .then((res) => {
         if (!res.ok) throw new Error("Gagal mengambil data pesanan");
         return res.json();
@@ -133,7 +136,7 @@ function Orders() {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `http://localhost:5000/api/payments/order/${orderId}`,
+        `https://e-commerce-jkt48-prototype-production.up.railway.app/api/payments/order/${orderId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -245,7 +248,7 @@ function Orders() {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `http://localhost:5000/api/orders/${orderId}/cancel`,
+        `https://e-commerce-jkt48-prototype-production.up.railway.app/api/orders/${orderId}/cancel`,
         {
           method: "PATCH",
           headers: {
@@ -367,7 +370,7 @@ function Orders() {
 
       // Cari payment yang sudah ada untuk order ini
       const getPaymentResponse = await fetch(
-        `http://localhost:5000/api/payments/order/${selectedOrder.order_id}`,
+        `https://e-commerce-jkt48-prototype-production.up.railway.app/api/payments/order/${selectedOrder.order_id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -385,7 +388,7 @@ function Orders() {
 
       // Konfirmasi pembayaran dengan payment_id yang sudah ada
       const confirmResponse = await fetch(
-        `http://localhost:5000/api/payments/${payment.payment_id}/confirm`,
+        `https://e-commerce-jkt48-prototype-production.up.railway.app/api/payments/${payment.payment_id}/confirm`,
         {
           method: "PUT",
           headers: {
@@ -485,7 +488,7 @@ function Orders() {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `http://localhost:5000/api/orders/${orderId}/confirm-received`,
+        `https://e-commerce-jkt48-prototype-production.up.railway.app/api/orders/${orderId}/confirm-received`,
         {
           method: "PATCH",
           headers: {
@@ -542,7 +545,7 @@ function Orders() {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `http://localhost:5000/api/reviews/order/${orderId}/reviewable`,
+        `https://e-commerce-jkt48-prototype-production.up.railway.app/api/reviews/order/${orderId}/reviewable`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -573,7 +576,7 @@ function Orders() {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `http://localhost:5000/api/reviews/order/${order.order_id}/reviewable`,
+        `https://e-commerce-jkt48-prototype-production.up.railway.app/api/reviews/order/${order.order_id}/reviewable`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -666,19 +669,22 @@ function Orders() {
       for (const [productId, review] of Object.entries(reviewData)) {
         if (review.rating && review.rating > 0) {
           reviewPromises.push(
-            fetch("http://localhost:5000/api/reviews/", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`,
-              },
-              body: JSON.stringify({
-                order_id: selectedOrder.order_id,
-                product_id: parseInt(productId),
-                rating: review.rating,
-                comment: review.comment || "",
-              }),
-            })
+            fetch(
+              "https://e-commerce-jkt48-prototype-production.up.railway.app/api/reviews/",
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                  order_id: selectedOrder.order_id,
+                  product_id: parseInt(productId),
+                  rating: review.rating,
+                  comment: review.comment || "",
+                }),
+              }
+            )
           );
         }
       }

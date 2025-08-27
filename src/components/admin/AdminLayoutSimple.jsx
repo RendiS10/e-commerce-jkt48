@@ -57,9 +57,12 @@ const AdminLayoutSimple = ({ children }) => {
       if (!user) {
         console.log("AdminLayout: No user but have token, checking API...");
         try {
-          const response = await fetch("http://localhost:5000/api/auth/me", {
-            headers: { Authorization: `Bearer ${token}` },
-          });
+          const response = await fetch(
+            "https://e-commerce-jkt48-prototype-production.up.railway.app/api/auth/me",
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          );
 
           if (response.ok) {
             const userData = await response.json();

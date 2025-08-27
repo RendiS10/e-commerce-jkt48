@@ -20,11 +20,14 @@ const Orders = () => {
   const fetchOrders = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch("http://localhost:5000/api/orders/all", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await fetch(
+        "https://e-commerce-jkt48-prototype-production.up.railway.app/api/orders/all",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       if (response.ok) {
         const data = await response.json();
         console.log("Orders data:", data); // Debug log
@@ -42,11 +45,14 @@ const Orders = () => {
   const fetchPayments = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch("http://localhost:5000/api/payments/all", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await fetch(
+        "https://e-commerce-jkt48-prototype-production.up.railway.app/api/payments/all",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       if (response.ok) {
         const data = await response.json();
         console.log("Payments data:", data); // Debug log
@@ -63,7 +69,7 @@ const Orders = () => {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `http://localhost:5000/api/orders/${orderId}/status`,
+        `https://e-commerce-jkt48-prototype-production.up.railway.app/api/orders/${orderId}/status`,
         {
           method: "PATCH",
           headers: {
@@ -91,7 +97,7 @@ const Orders = () => {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `http://localhost:5000/api/payments/${paymentId}/approve`,
+        `https://e-commerce-jkt48-prototype-production.up.railway.app/api/payments/${paymentId}/approve`,
         {
           method: "PUT",
           headers: {
@@ -121,7 +127,7 @@ const Orders = () => {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `http://localhost:5000/api/payments/${paymentId}/reject`,
+        `https://e-commerce-jkt48-prototype-production.up.railway.app/api/payments/${paymentId}/reject`,
         {
           method: "PUT",
           headers: {

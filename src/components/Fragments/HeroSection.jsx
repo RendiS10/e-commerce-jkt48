@@ -16,7 +16,7 @@ function HeroSection() {
     try {
       setLoading(true);
       const response = await fetch(
-        "http://localhost:5000/api/news?is_active=true"
+        "https://e-commerce-jkt48-prototype-production.up.railway.app/api/news?is_active=true"
       );
       const data = await response.json();
 

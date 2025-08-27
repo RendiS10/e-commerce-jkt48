@@ -58,9 +58,12 @@ function CheckoutDetail() {
       setDirectBuyItem(item);
 
       // Fetch user profile saja
-      fetch("http://localhost:5000/api/auth/me", {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+      fetch(
+        "https://e-commerce-jkt48-prototype-production.up.railway.app/api/auth/me",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      )
         .then((userRes) => {
           if (!userRes.ok) {
             throw new Error("Failed to fetch user data");
@@ -90,12 +93,18 @@ function CheckoutDetail() {
       // Mode normal dari cart
       // Fetch cart data dan user profile
       Promise.all([
-        fetch("http://localhost:5000/api/cart", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        fetch("http://localhost:5000/api/auth/me", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
+        fetch(
+          "https://e-commerce-jkt48-prototype-production.up.railway.app/api/cart",
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        ),
+        fetch(
+          "https://e-commerce-jkt48-prototype-production.up.railway.app/api/auth/me",
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        ),
       ])
         .then(([cartRes, userRes]) => {
           if (!cartRes.ok || !userRes.ok) {
@@ -250,14 +259,17 @@ function CheckoutDetail() {
             })),
       };
 
-      const response = await fetch("http://localhost:5000/api/orders", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(orderData),
-      });
+      const response = await fetch(
+        "https://e-commerce-jkt48-prototype-production.up.railway.app/api/orders",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(orderData),
+        }
+      );
 
       if (!response.ok) {
         const errorData = await response.json();
