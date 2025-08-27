@@ -25,7 +25,9 @@ const CustomerChat = ({ user, onClose }) => {
   useEffect(() => {
     if (!user) return;
 
-    const newSocket = io("http://localhost:5000");
+    const newSocket = io(
+      "https://e-commerce-jkt48-prototype-production.up.railway.app"
+    );
 
     newSocket.on("connect", () => {
       console.log("Customer connected to socket");
