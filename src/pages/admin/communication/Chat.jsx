@@ -35,9 +35,12 @@ const AdminChat = () => {
   useEffect(() => {
     if (!user || user.role !== "admin") return;
 
-    const newSocket = io("http://localhost:5000", {
-      withCredentials: true,
-    });
+    const newSocket = io(
+      "https://e-commerce-jkt48-prototype-production.up.railway.app",
+      {
+        withCredentials: true,
+      }
+    );
 
     newSocket.on("connect", () => {
       console.log("Admin connected to chat server");
