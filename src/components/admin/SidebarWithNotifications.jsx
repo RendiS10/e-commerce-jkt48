@@ -168,10 +168,7 @@ const SidebarWithNotifications = () => {
           <button
             onClick={() => navigate("/")}
             className="flex items-center space-x-3 px-4 py-3 w-full text-left text-gray-300 hover:bg-gray-700 hover:text-white rounded-lg transition duration-200"
-          >
-            <span className="text-xl">🏠</span>
-            <span className="font-medium">Main Site</span>
-          </button>
+          ></button>
         </div>
       </div>
     </div>
